@@ -19,16 +19,16 @@ const getMoviesList = async (res, movieTitle) => {
     }
 
     const moviesResponse = await fetch(
-      `${SWAGGER_BASE_URL}/movies/search/${movieTitle}`
+      `${OMDB_BASE_URL}/?apikey=${OMDB_KEY}&s=${movieTitle}`
     );
 
-    if (!moviesResponse.ok) {
-      //  Throw error for fetch failure
-      throw {
-        statusCode: 500,
-        message: "The remote detail server returned an invalid response",
-      };
-    }
+    // if (!moviesResponse.ok) {
+    //   //  Throw error for fetch failure
+    //   throw {
+    //     statusCode: 500,
+    //     message: "The remote detail server returned an invalid response",
+    //   };
+    // }
 
     const data = await moviesResponse.json();
 
@@ -36,7 +36,6 @@ const getMoviesList = async (res, movieTitle) => {
       throw {
         statusCode: 400,
         message: data.Error,
-        // new Error(data.Error );
       };
     } else {
       const mappedData = data.Search.map((movie) => {
@@ -54,7 +53,8 @@ const getMoviesList = async (res, movieTitle) => {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
       });
-      res.write(JSON.stringify({ Movies: mappedData }));
+      res.write(JSON.stringify({ data }));
+      // res.write(JSON.stringify({ Movies: mappedData }));
       res.end();
     }
   } catch (error) {
@@ -67,35 +67,81 @@ const getMoviesList = async (res, movieTitle) => {
     res.write(
       JSON.stringify({
         error: true,
-        message: error.message || "An internal server error occurred",
+        message:
+          error.message ||
+          "The remote detail server returned an invalid response",
       })
     );
     res.end();
   }
 };
 
-const getStreamingData = async (res, id) => {
+const getStreamingData = async (id) => {
   try {
     const rapidResponse = await fetch(`${RAPID_BASE_URL}/${id}`, {
       headers: {
         "X-RapidAPI-Key": RAPID_KEY,
       },
     });
-    const rapidData = await rapidResponse.json();
-    return { streamingInfo: rapidData.streamingOptions.au };
-  } catch (error) {}
 
-  res.writeHead(200, {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-  });
-  res.write(
-    JSON.stringify({ streamingOptions: rapidData.streamingOptions.au })
-  );
-  res.end();
+    if (rapidResponse.status === 404) {
+      throw {
+        statusCode: 400,
+        message: "Incorrect IMDb ID.",
+      };
+    }
+
+    // if (!rapidResponse.ok) {
+    //   console.log(rapidResponse);
+    //   throw {
+    //     statusCode: 500,
+    //     message: "The remote streaming server returned an invalid response",
+    //   };
+    // }
+
+    const data = await rapidResponse.json();
+
+    return { streamingInfo: data.streamingOptions.au };
+  } catch (error) {
+    throw error;
+  }
 };
 
-const getMovieData = async (res, id) => {
+const getDetailData = async (id) => {
+  try {
+    const omdbResponse = await fetch(
+      `${OMDB_BASE_URL}/?apikey=${OMDB_KEY}&i=${id}`
+    );
+
+    const omdbData = await omdbResponse.json();
+
+    if (omdbData.Response === "False") {
+      throw {
+        statusCode: 400,
+        message: omdbData.Error,
+      };
+    }
+    //////////////////////////////////////
+    // const { Title, Year, Director, Actors, Plot, Genre, Poster, Ratings } =
+    //   omdbData;
+
+    // const movieDetails = {
+    //   Title,
+    //   Year,
+    //   Director,
+    //   Actors,
+    //   Plot,
+    //   Genre,
+    //   Poster,
+    //   Ratings,
+    // };
+    return { details: omdbData };
+  } catch (error) {
+    throw error;
+  }
+};
+
+const getCombinedMovieData = async (res, id) => {
   try {
     if (!id) {
       throw {
@@ -103,44 +149,16 @@ const getMovieData = async (res, id) => {
         message: "You must supply an imdbID!",
       };
     }
+    const movieDetails = await getDetailData(id);
+    const movieStreaming = await getStreamingData(id);
 
-    const omdbResponse = await fetch(
-      `${OMDB_BASE_URL}/?apikey=${OMDB_KEY}&i=${id}`
-    );
-
-    const swaggerResponse = await fetch(
-      `${SWAGGER_BASE_URL}/movies/data/${id}`
-    );
-
-    if (!omdbResponse.ok) {
-      throw {
-        statusCode: 500,
-        message: "The remote detail server returned an invalid response",
-      };
-    }
-
-    const omdbData = await omdbResponse.json();
-    const swaggerData = await swaggerResponse.json();
-    // handle data.Response = 'False'
-    const { Title, Year, Director, Actors, Plot, Genre, Poster, Ratings } =
-      omdbData;
-
-    const movieDetails = {
-      Title,
-      Year,
-      Director,
-      Actors,
-      Plot,
-      Genre,
-      Poster,
-      Ratings,
-    };
+    const result = { ...movieDetails, ...movieStreaming };
 
     res.writeHead(200, {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
     });
-    res.write(JSON.stringify(swaggerData));
+    res.write(JSON.stringify(result));
     res.end();
   } catch (error) {
     const statusCode = error.statusCode || 500;
@@ -151,7 +169,8 @@ const getMovieData = async (res, id) => {
     res.write(
       JSON.stringify({
         error: true,
-        message: error.message || "An internal server error occurred",
+        message:
+          error.message || "The remote server returned an invalid response",
       })
     );
     res.end();
@@ -166,11 +185,10 @@ const routing = (req, res) => {
     const reqUrl = new URL(req.url, `http://${req.headers.host}`);
     const movieTitle = reqUrl.searchParams.get("movie");
     getMoviesList(res, movieTitle);
-  } else if (url.startsWith("/movies") && url.includes("/data")) {
+  } else if (url.startsWith("/movies") && url.includes("/data?id=")) {
     const reqUrl = new URL(req.url, `http://${req.headers.host}`);
     const movieID = reqUrl.searchParams.get("id");
-    getMovieData(res, movieID);
-    // getStreamingData(res, movieID);
+    getCombinedMovieData(res, movieID);
   } else {
     res.write("No matching page");
     res.end();
