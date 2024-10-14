@@ -53,7 +53,7 @@ const getMoviesList = async (res, movieTitle) => {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
       });
-      res.write(JSON.stringify({ data }));
+      res.write(JSON.stringify({ search: data.Search }));
       // res.write(JSON.stringify({ Movies: mappedData }));
       res.end();
     }
@@ -177,6 +177,31 @@ const getCombinedMovieData = async (res, id) => {
   }
 };
 
+const getMoviePoster = async (res, id) => {
+  try {
+    const omdbResponse = await fetch(
+      `${OMDB_BASE_URL}/?apikey=${OMDB_KEY}&i=${id}`
+    );
+    const omdbData = await omdbResponse.json();
+    const poster = omdbData.Poster;
+
+    const imageRes = await fetch(poster);
+
+    const arrayBuffer = await imageRes.arrayBuffer();
+
+    const buffer = Buffer.from(arrayBuffer);
+    // Set response headers for the image
+    res.writeHead(200, {
+      "Content-Type": imageRes.headers.get("content-type") || "image/jpeg", // Set content type based on the image response
+      "Access-Control-Allow-Origin": "*",
+    });
+
+    res.end(buffer);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 const routing = (req, res) => {
   const url = req.url;
   const method = req.method;
@@ -189,6 +214,12 @@ const routing = (req, res) => {
     const reqUrl = new URL(req.url, `http://${req.headers.host}`);
     const movieID = reqUrl.searchParams.get("id");
     getCombinedMovieData(res, movieID);
+  } else if (url.startsWith("/posters")) {
+    const reqUrl = new URL(req.url, `http://${req.headers.host}`);
+    const movieID = reqUrl.searchParams.get("id");
+    getMoviePoster(res, movieID);
+    // } else if (url.startsWith("/posters") && url.includes("/add")) {
+    //   addMoviePoster();
   } else {
     res.write("No matching page");
     res.end();
