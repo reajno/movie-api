@@ -1,0 +1,245 @@
+{
+  "details": {
+    "Title": "Cars",
+    "Year": "2006",
+    "Rated": "G",
+    "Released": "23 Jun 2006",
+    "Runtime": "116 min",
+    "Genre": "Animation, Adventure, Comedy",
+    "Director": "John Lasseter, Joe Ranft",
+    "Writer": "John Lasseter, Joe Ranft, Jorgen Klubien",
+    "Actors": "Owen Wilson, Bonnie Hunt, Paul Newman",
+    "Plot": "On the way to the biggest race of his life, a hotshot rookie race car gets stranded in a rundown town and learns that winning isn't everything in life.",
+    "Language": "English, Italian, Japanese, Yiddish",
+    "Country": "United States",
+    "Awards": "Nominated for 2 Oscars. 28 wins & 34 nominations total",
+    "Poster": "https://m.media-amazon.com/images/M/MV5BMTg5NzY0MzA2MV5BMl5BanBnXkFtZTYwNDc3NTc2._V1_SX300.jpg",
+    "Ratings": [
+      {
+        "Source": "Internet Movie Database",
+        "Value": "7.2/10"
+      },
+      {
+        "Source": "Rotten Tomatoes",
+        "Value": "75%"
+      },
+      {
+        "Source": "Metacritic",
+        "Value": "73/100"
+      }
+    ],
+    "Metascore": "73",
+    "imdbRating": "7.2",
+    "imdbVotes": "481,669",
+    "imdbID": "tt0317219",
+    "Type": "movie",
+    "DVD": "N/A",
+    "BoxOffice": "$244,082,982",
+    "Production": "N/A",
+    "Website": "N/A",
+    "Response": "True"
+  },
+  "streamingInfo": [
+    {
+      "service": {
+        "id": "disney",
+        "name": "Disney+",
+        "homePage": "https://www.disneyplus.com/",
+        "themeColorCode": "#01137c",
+        "imageSet": {
+          "lightThemeImage": "https://media.movieofthenight.com/services/disney/logo-light-theme.svg",
+          "darkThemeImage": "https://media.movieofthenight.com/services/disney/logo-dark-theme.svg",
+          "whiteImage": "https://media.movieofthenight.com/services/disney/logo-white.svg"
+        }
+      },
+      "type": "subscription",
+      "link": "https://www.disneyplus.com/movies/cars/41KYquQjLwge",
+      "videoLink": "https://www.disneyplus.com/video/c7e44c68-0e08-48df-a899-45c1d072334c",
+      "quality": "uhd",
+      "audios": [
+        {
+          "language": "eng"
+        },
+        {
+          "language": "spa",
+          "region": "419"
+        }
+      ],
+      "subtitles": [
+        {
+          "closedCaptions": false,
+          "locale": {
+            "language": "eng"
+          }
+        },
+        {
+          "closedCaptions": false,
+          "locale": {
+            "language": "spa",
+            "region": "419"
+          }
+        },
+        {
+          "closedCaptions": false,
+          "locale": {
+            "language": "zho"
+          }
+        }
+      ],
+      "expiresSoon": false,
+      "availableSince": 1649583223
+    },
+    {
+      "service": {
+        "id": "apple",
+        "name": "Apple TV",
+        "homePage": "https://tv.apple.com/au",
+        "themeColorCode": "#000000",
+        "imageSet": {
+          "lightThemeImage": "https://media.movieofthenight.com/services/apple/logo-light-theme.svg",
+          "darkThemeImage": "https://media.movieofthenight.com/services/apple/logo-dark-theme.svg",
+          "whiteImage": "https://media.movieofthenight.com/services/apple/logo-white.svg"
+        }
+      },
+      "type": "addon",
+      "addon": {
+        "id": "tvs.sbd.1000216",
+        "name": "Disney+",
+        "homePage": "https://tv.apple.com/au/channel/disney/tvs.sbd.1000216",
+        "themeColorCode": "#136878",
+        "imageSet": {
+          "lightThemeImage": "",
+          "darkThemeImage": "",
+          "whiteImage": ""
+        }
+      },
+      "link": "https://tv.apple.com/au/movie/cars/umc.cmc.6tkcbec7pfpemkufvlqkyxxyu",
+      "quality": "uhd",
+      "audios": [
+        {
+          "language": "eng"
+        },
+        {
+          "language": "spa",
+          "region": "419"
+        }
+      ],
+      "subtitles": [
+        {
+          "closedCaptions": false,
+          "locale": {
+            "language": "spa",
+            "region": "419"
+          }
+        },
+        {
+          "closedCaptions": false,
+          "locale": {
+            "language": "zho"
+          }
+        }
+      ],
+      "expiresSoon": false,
+      "availableSince": 1710509602
+    },
+    {
+      "service": {
+        "id": "apple",
+        "name": "Apple TV",
+        "homePage": "https://tv.apple.com/au",
+        "themeColorCode": "#000000",
+        "imageSet": {
+          "lightThemeImage": "https://media.movieofthenight.com/services/apple/logo-light-theme.svg",
+          "darkThemeImage": "https://media.movieofthenight.com/services/apple/logo-dark-theme.svg",
+          "whiteImage": "https://media.movieofthenight.com/services/apple/logo-white.svg"
+        }
+      },
+      "type": "buy",
+      "link": "https://tv.apple.com/au/movie/cars/umc.cmc.6tkcbec7pfpemkufvlqkyxxyu?playableId=tvs.sbd.9001%3A295236797",
+      "quality": "sd",
+      "audios": [],
+      "subtitles": [],
+      "price": {
+        "amount": "18.99",
+        "currency": "AUD",
+        "formatted": "18.99 AUD"
+      },
+      "expiresSoon": false,
+      "availableSince": 1710509602
+    },
+    {
+      "service": {
+        "id": "apple",
+        "name": "Apple TV",
+        "homePage": "https://tv.apple.com/au",
+        "themeColorCode": "#000000",
+        "imageSet": {
+          "lightThemeImage": "https://media.movieofthenight.com/services/apple/logo-light-theme.svg",
+          "darkThemeImage": "https://media.movieofthenight.com/services/apple/logo-dark-theme.svg",
+          "whiteImage": "https://media.movieofthenight.com/services/apple/logo-white.svg"
+        }
+      },
+      "type": "buy",
+      "link": "https://tv.apple.com/au/movie/cars/umc.cmc.6tkcbec7pfpemkufvlqkyxxyu?playableId=tvs.sbd.9001%3A295236797",
+      "quality": "hd",
+      "audios": [],
+      "subtitles": [],
+      "price": {
+        "amount": "19.99",
+        "currency": "AUD",
+        "formatted": "19.99 AUD"
+      },
+      "expiresSoon": false,
+      "availableSince": 1710509602
+    },
+    {
+      "service": {
+        "id": "disney",
+        "name": "Disney+",
+        "homePage": "https://www.disneyplus.com/",
+        "themeColorCode": "#01137c",
+        "imageSet": {
+          "lightThemeImage": "https://media.movieofthenight.com/services/disney/logo-light-theme.svg",
+          "darkThemeImage": "https://media.movieofthenight.com/services/disney/logo-dark-theme.svg",
+          "whiteImage": "https://media.movieofthenight.com/services/disney/logo-white.svg"
+        }
+      },
+      "type": "subscription",
+      "link": "https://www.disneyplus.com/browse/entity-9c1b0ec2-2e4e-4717-89fb-bdf3a45523df",
+      "videoLink": "https://www.disneyplus.com/play/9c1b0ec2-2e4e-4717-89fb-bdf3a45523df",
+      "quality": "uhd",
+      "audios": [
+        {
+          "language": "eng"
+        },
+        {
+          "language": "spa",
+          "region": "419"
+        }
+      ],
+      "subtitles": [
+        {
+          "closedCaptions": true,
+          "locale": {
+            "language": "eng"
+          }
+        },
+        {
+          "closedCaptions": false,
+          "locale": {
+            "language": "spa",
+            "region": "419"
+          }
+        },
+        {
+          "closedCaptions": false,
+          "locale": {
+            "language": "zho"
+          }
+        }
+      ],
+      "expiresSoon": false,
+      "availableSince": 1727262483
+    }
+  ]
+}

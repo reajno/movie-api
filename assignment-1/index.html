@@ -31,138 +31,69 @@
         <button type="submit" class="btn btn-primary">Find Movie</button>
       </form>
     </div>
-    <main class=" container py-4 d-flex flex-column gap-4 align-items-center">
-      <!--  RENDER BUTTON ONCE INDIVIDUAL MOVIE IS CLICKED -->
-      <div>
-        <img src="#" alt="">
-        <h1>RENDER IMG HERE</h1>
-      </div>
-      
-      <div>
-        <button class="btn btn-success me-3">Show Poster</button>
-        <button class="btn btn-warning">Upload New Poster</button>
-      </div>
-
-  <!-- RENDER REVIEWS -->
-<div class="d-flex gap-4">      
-  <h5>
-    IMDB: 9.0/10
-  </h5>
-  <h5>
-    RT: 93%
-  </h5>
-  <h5>
-    Metacritic: 90/100
-  </h5>
-</div>
-
-<!-- RENDER AVAILABLE STREAMS -->
-<div class="card" style="width: 18rem;">
-  <div class="card-body d-flex flex-column gap-2">
-    <h5 class="card-title text-center fw-bold">Now Streaming</h5>
-    <div class="streamers d-flex justify-content-center gap-4">
-      <button>disney</button>
-      <button>prime</button>
-      <button>binge</button>
-    </div>    
-  </div>
-</div>
-      <!-- RENDER TABLE ONCE SEARCH DATA RECEIVED -->
-      <table class="table table-hover table-dark w-75">
-        <tbody>
-          <tr>
-            <th>Title</th>
-            <td class="movie-title">Star Wars: Episode IV - A New Hope</td>
-          </tr>
-          <tr>
-            <th>Year</th>
-            <td class="movie-year">1977</td>
-          </tr>
-          <tr>
-            <th>Rated</th>
-            <td class="movie-rated">PG</td>
-          </tr>
-          <tr>
-            <th>Genre</th>
-            <td class="movie-genre">Action, Adventure, Fantasy, Sci-Fi</td>
-          </tr>
-          <tr>
-            <th>Director</th>
-            <td class="movie-director">George Lucas</td>
-          </tr>
-          <tr>
-            <th>Actors</th>
-            <td class="movie-actors">Mark Hamill, Harrison Ford, Carrie Fisher, Peter Cushing</td>
-          </tr>
-          <tr>
-            <th>Awards</th>
-            <td class="movie-actors">Won 6 Oscars. Another 50 wins & 28 nominations.</td>
-          </tr>
-          <tr>
-            <th>Plot</th>
-            <td class="movie-plot">Luke Skywalker joins forces with a Jedi Knight, a cocky pilot, a Wookiee and two droids to save the galaxy from the Empire's world-destroying battle station, while also attempting to rescue Princess Leia from the mysterious Darth Vader.</td>
-          </tr>
-        </tbody>
-      </table>
-
-
-
-
-
-
+    <main
+      class="d-none container py-4 d-flex flex-column gap-4 align-items-center"
+    >
       <!-- RENDER TABLE ONCE SEARCH DATA RECEIVED -->
       <table class="table table-hover table-dark">
         <thead>
           <tr id="movie-details">
             <th>Title</th>
             <th>Year</th>
-            <th>Rated</th>
-            <th>Director</th>
-            <th>Plot</th>
-            <th>RT</th>
-            <th>IMDb</th>
-            <th>Metacritic</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="search-results">
           <tr class="movie-row">
-            <th class="movie-title">Star Wars: Episode IV - A New Hope</td>
-            <td class="movie-year">1977</td>
-          <td class="movie-rated">PG</td>
-          <td class="movie-director">George Lucas</td>
-          <td class="movie-plot">Luke Skywalker joins forces with a Jedi Knight, a cocky pilot, 
-            a Wookiee and two droids to save the galaxy from the Empire's world-destroying battle station, 
-            while also attempting to rescue Princess Leia from the mysterious Darth Vader.</td>
-            <td class="movie-rt">93%</td>
-            <td class="movie-imdb">8.6/10</td>
-            <td class="movie-metacritic">90/100</td>
+            <!-- <th class="movie-title">Star Wars: Episode IV - A New Hope</th>
+            <td class="movie-year">1977</td> -->
           </tr>
         </tbody>
       </table>
-
-
-
     </main>
 
     <script>
-      const movie = document.querySelectorAll('tr.movie-row')
+      const movie = document.querySelectorAll("tr.movie-row");
 
       movie.forEach((result, i) => {
-        result.addEventListener("click", () => console.log(`hello from position ${i}`));
-      })
+        result.addEventListener("click", () =>
+          console.log(`hello from position ${i}`)
+        );
+      });
 
       const getForm = async (e) => {
         e.preventDefault();
         const movie = document.getElementById("movieSearch").value;
 
-        let res = await fetch(
-          // Send fetch request to API URL
-          // with input value as search params in the URL.
-          `http://localhost:3000/movies/search?movie=${movie}`
-        );
+        try {
+          let res = await fetch(
+            // Send fetch request to API URL
+            // with input value as search params in the URL.
+            `http://localhost:3000/movies/search/${movie}`
+          );
 
-        const data = await res.json();
-        console.log(data);
+          if (!res.ok) {
+            const errorData = await res.json();
+            throw errorData;
+          }
+          const data = await res.json();
+          const result = data.Search;
+
+          const tableBody = document.getElementById("search-results");
+          const mainContainer = document.querySelector("main.container");
+          mainContainer.classList.remove("d-none");
+
+          let searchResults = result.map((movie) => {
+            return `<tr class="movie-row">
+              <td class="movie-title">${movie.Title}</td>
+              <td class="movie-year">${movie.Year}</td>
+            </tr>`;
+          });
+
+          searchResults = searchResults.join("");
+          tableBody.innerHTML = searchResults;
+        } catch (error) {
+          alert(error.message);
+        }
       };
 
       const form = document.getElementById("form");

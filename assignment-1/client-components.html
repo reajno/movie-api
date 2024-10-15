@@ -1,0 +1,78 @@
+<!--  RENDER BUTTON ONCE INDIVIDUAL MOVIE IS CLICKED -->
+<div>
+  <img src="#" alt="" />
+  <h1>RENDER IMG HERE</h1>
+</div>
+<!--  RENDER BUTTON ONCE INDIVIDUAL MOVIE IS CLICKED -->
+<div>
+  <button class="btn btn-success me-3">Show Poster</button>
+  <form action="/posters/add" method="POST" enctype="multipart/form-data">
+    <input type="file" name="poster" id="posterUpload" />
+    <button type="submit" class="btn btn-warning">Upload Poster</button>
+  </form>
+</div>
+
+<!-- RENDER REVIEWS -->
+<div class="d-flex gap-4">
+  <h5>IMDB: 9.0/10</h5>
+  <h5>RT: 93%</h5>
+  <h5>Metacritic: 90/100</h5>
+</div>
+
+<!-- RENDER AVAILABLE STREAMS -->
+<div class="card" style="width: 18rem">
+  <div class="card-body d-flex flex-column gap-2">
+    <h5 class="card-title text-center fw-bold">Now Streaming</h5>
+    <div class="streamers d-flex justify-content-center gap-4">
+      <button>disney</button>
+      <button>prime</button>
+      <button>binge</button>
+    </div>
+  </div>
+</div>
+<!-- RENDER TABLE ONCE SEARCH DATA RECEIVED -->
+<table class="table table-hover table-dark w-75">
+  <tbody>
+    <tr>
+      <th>Title</th>
+      <td class="movie-title">Star Wars: Episode IV - A New Hope</td>
+    </tr>
+    <tr>
+      <th>Year</th>
+      <td class="movie-year">1977</td>
+    </tr>
+    <tr>
+      <th>Rated</th>
+      <td class="movie-rated">PG</td>
+    </tr>
+    <tr>
+      <th>Genre</th>
+      <td class="movie-genre">Action, Adventure, Fantasy, Sci-Fi</td>
+    </tr>
+    <tr>
+      <th>Director</th>
+      <td class="movie-director">George Lucas</td>
+    </tr>
+    <tr>
+      <th>Actors</th>
+      <td class="movie-actors">
+        Mark Hamill, Harrison Ford, Carrie Fisher, Peter Cushing
+      </td>
+    </tr>
+    <tr>
+      <th>Awards</th>
+      <td class="movie-actors">
+        Won 6 Oscars. Another 50 wins & 28 nominations.
+      </td>
+    </tr>
+    <tr>
+      <th>Plot</th>
+      <td class="movie-plot">
+        Luke Skywalker joins forces with a Jedi Knight, a cocky pilot, a Wookiee
+        and two droids to save the galaxy from the Empire's world-destroying
+        battle station, while also attempting to rescue Princess Leia from the
+        mysterious Darth Vader.
+      </td>
+    </tr>
+  </tbody>
+</table>

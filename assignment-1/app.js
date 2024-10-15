@@ -1,8 +1,9 @@
 import http from "http";
 import dotenv from "dotenv";
+import { promises as fs } from "fs";
 dotenv.config();
 
-const SWAGGER_BASE_URL = process.env.SWAGGER_API_BASE;
+// const SWAGGER_BASE_URL = process.env.SWAGGER_API_BASE;
 const OMDB_BASE_URL = process.env.OMDB_API_BASE;
 const OMDB_KEY = process.env.OMDB_API_KEY;
 const RAPID_BASE_URL = process.env.RAPID_API_BASE;
@@ -22,14 +23,6 @@ const getMoviesList = async (res, movieTitle) => {
       `${OMDB_BASE_URL}/?apikey=${OMDB_KEY}&s=${movieTitle}`
     );
 
-    // if (!moviesResponse.ok) {
-    //   //  Throw error for fetch failure
-    //   throw {
-    //     statusCode: 500,
-    //     message: "The remote detail server returned an invalid response",
-    //   };
-    // }
-
     const data = await moviesResponse.json();
 
     if (data.Response === "False") {
@@ -38,23 +31,11 @@ const getMoviesList = async (res, movieTitle) => {
         message: data.Error,
       };
     } else {
-      const mappedData = data.Search.map((movie) => {
-        const { Title, Year, imdbID, Poster } = movie;
-
-        return {
-          Title,
-          Year,
-          imdbID,
-          Poster,
-        };
-      });
-
       res.writeHead(200, {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
       });
-      res.write(JSON.stringify({ search: data.Search }));
-      // res.write(JSON.stringify({ Movies: mappedData }));
+      res.write(JSON.stringify(data));
       res.end();
     }
   } catch (error) {
@@ -107,7 +88,7 @@ const getStreamingData = async (id) => {
   }
 };
 
-const getDetailData = async (id) => {
+const getMovieData = async (id) => {
   try {
     const omdbResponse = await fetch(
       `${OMDB_BASE_URL}/?apikey=${OMDB_KEY}&i=${id}`
@@ -121,20 +102,6 @@ const getDetailData = async (id) => {
         message: omdbData.Error,
       };
     }
-    //////////////////////////////////////
-    // const { Title, Year, Director, Actors, Plot, Genre, Poster, Ratings } =
-    //   omdbData;
-
-    // const movieDetails = {
-    //   Title,
-    //   Year,
-    //   Director,
-    //   Actors,
-    //   Plot,
-    //   Genre,
-    //   Poster,
-    //   Ratings,
-    // };
     return { details: omdbData };
   } catch (error) {
     throw error;
@@ -149,10 +116,14 @@ const getCombinedMovieData = async (res, id) => {
         message: "You must supply an imdbID!",
       };
     }
-    const movieDetails = await getDetailData(id);
-    const movieStreaming = await getStreamingData(id);
+    // LIMIT CALLS FOR MOVIE STREAMING
+    const movieDetails = await getMovieData(id);
+    // const movieStreaming = await getStreamingData(id);
 
-    const result = { ...movieDetails, ...movieStreaming };
+    const result = {
+      ...movieDetails,
+      // ...movieStreaming,
+    };
 
     res.writeHead(200, {
       "Content-Type": "application/json",
@@ -179,47 +150,99 @@ const getCombinedMovieData = async (res, id) => {
 
 const getMoviePoster = async (res, id) => {
   try {
-    const omdbResponse = await fetch(
-      `${OMDB_BASE_URL}/?apikey=${OMDB_KEY}&i=${id}`
-    );
-    const omdbData = await omdbResponse.json();
-    const poster = omdbData.Poster;
+    if (!id) {
+      throw {
+        statusCode: 400,
+        message: "You must supply an imdbID!",
+      };
+    }
 
-    const imageRes = await fetch(poster);
+    const fileName = `${id}.png`;
 
-    const arrayBuffer = await imageRes.arrayBuffer();
+    const img = await fs.readFile(fileName, "binary");
 
-    const buffer = Buffer.from(arrayBuffer);
-    // Set response headers for the image
     res.writeHead(200, {
-      "Content-Type": imageRes.headers.get("content-type") || "image/jpeg", // Set content type based on the image response
+      "Content-Type": "image/png",
       "Access-Control-Allow-Origin": "*",
     });
-
-    res.end(buffer);
+    res.write(img, "binary");
+    res.end();
   } catch (error) {
-    console.log(error);
+    const statusCode = error.code === "ENOENT" ? 500 : error.statusCode;
+    res.writeHead(statusCode, {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+    });
+    res.write(
+      JSON.stringify({
+        error: true,
+        message:
+          error.message || "The remote server returned an invalid response",
+      })
+    );
+    res.end();
   }
 };
 
+const addMoviePoster = async (req, res, id) => {
+  const path = `./${id}.png`;
+  let body = "";
+
+  req.on("data", (chunk) => {
+    body += chunk.toString();
+  });
+
+  req.on("end", () => {
+    const parsedData = JSON.parse(body);
+    const params = new URLSearchParams(body);
+
+    const fileData = parsedData.file;
+
+    fs.writeFile(path, fileData, { encoding: "base64" }, (err) => {
+      if (err) {
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({ error: true, message: "Failed to save poster." })
+        );
+        return;
+      }
+
+      res.writeHead(200, {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST",
+      });
+      res.end(
+        JSON.stringify({
+          error: false,
+          message: "Poster UPloaded Successfully",
+        })
+      );
+    });
+  });
+};
+
 const routing = (req, res) => {
-  const url = req.url;
+  // Create URL object, more workable
+  const reqUrl = new URL(req.url, `http://${req.headers.host}`);
+  const path = reqUrl.pathname;
   const method = req.method;
 
-  if (url.startsWith("/movies") && url.includes("/search")) {
-    const reqUrl = new URL(req.url, `http://${req.headers.host}`);
-    const movieTitle = reqUrl.searchParams.get("movie");
+  if (path.startsWith("/movies/search") && method == "GET") {
+    const movieTitle = path.replace("/movies/search/", "");
     getMoviesList(res, movieTitle);
-  } else if (url.startsWith("/movies") && url.includes("/data?id=")) {
-    const reqUrl = new URL(req.url, `http://${req.headers.host}`);
-    const movieID = reqUrl.searchParams.get("id");
+  } else if (path.startsWith("/movies/data") && method == "GET") {
+    // const reqUrl = new URL(req.url, `http://${req.headers.host}`);
+    // const path = reqUrl.pathname;
+    const movieID = path.replace("/movies/data/", "");
     getCombinedMovieData(res, movieID);
-  } else if (url.startsWith("/posters")) {
-    const reqUrl = new URL(req.url, `http://${req.headers.host}`);
-    const movieID = reqUrl.searchParams.get("id");
+  } else if (path.startsWith("/posters") && method == "GET") {
+    // const reqUrl = new URL(req.url, `http://${req.headers.host}`);
+    // const path = reqUrl.pathname;
+    const movieID = path.replace("/posters/", "");
     getMoviePoster(res, movieID);
-    // } else if (url.startsWith("/posters") && url.includes("/add")) {
-    //   addMoviePoster();
+  } else if (path.startsWith("/posters/add") && method == "POST") {
+    addMoviePoster(res, movieID);
   } else {
     res.write("No matching page");
     res.end();

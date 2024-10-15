@@ -1,0 +1,278 @@
+{
+  "streamingInfo": [
+    {
+      "service": {
+        "id": "stan",
+        "name": "Stan",
+        "homePage": "https://www.stan.com.au/",
+        "themeColorCode": "#0072fb",
+        "imageSet": {
+          "lightThemeImage": "https://media.movieofthenight.com/services/stan/logo-light-theme.svg",
+          "darkThemeImage": "https://media.movieofthenight.com/services/stan/logo-dark-theme.svg",
+          "whiteImage": "https://media.movieofthenight.com/services/stan/logo-white.svg"
+        }
+      },
+      "type": "subscription",
+      "link": "https://www.stan.com.au/watch/shrek-2001",
+      "quality": "hd",
+      "audios": [],
+      "subtitles": [
+        {
+          "closedCaptions": true,
+          "locale": {
+            "language": "eng"
+          }
+        }
+      ],
+      "expiresSoon": false,
+      "availableSince": 1650054269
+    },
+    {
+      "service": {
+        "id": "prime",
+        "name": "Prime Video",
+        "homePage": "https://www.primevideo.com",
+        "themeColorCode": "#00A8E1",
+        "imageSet": {
+          "lightThemeImage": "https://media.movieofthenight.com/services/prime/logo-light-theme.svg",
+          "darkThemeImage": "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg",
+          "whiteImage": "https://media.movieofthenight.com/services/prime/logo-white.svg"
+        }
+      },
+      "type": "addon",
+      "addon": {
+        "id": "paramountplusau",
+        "name": "Paramount+",
+        "homePage": "https://www.primevideo.com/storefront?benefitId=paramountplusau",
+        "themeColorCode": "#000000",
+        "imageSet": {
+          "lightThemeImage": "https://media.movieofthenight.com/services/prime/au/addons/paramountplusau/light-theme.svg",
+          "darkThemeImage": "https://media.movieofthenight.com/services/prime/au/addons/paramountplusau/dark-theme.svg",
+          "whiteImage": "https://media.movieofthenight.com/services/prime/au/addons/paramountplusau/white.svg"
+        }
+      },
+      "link": "https://www.primevideo.com/detail/0S3P89X75C2DXJ392UIWKUVXDZ/ref=atv_dp",
+      "quality": "sd",
+      "audios": [
+        {
+          "language": "eng"
+        }
+      ],
+      "subtitles": [],
+      "expiresSoon": false,
+      "availableSince": 1728753289
+    },
+    {
+      "service": {
+        "id": "prime",
+        "name": "Prime Video",
+        "homePage": "https://www.primevideo.com",
+        "themeColorCode": "#00A8E1",
+        "imageSet": {
+          "lightThemeImage": "https://media.movieofthenight.com/services/prime/logo-light-theme.svg",
+          "darkThemeImage": "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg",
+          "whiteImage": "https://media.movieofthenight.com/services/prime/logo-white.svg"
+        }
+      },
+      "type": "buy",
+      "link": "https://www.primevideo.com/detail/0S3P89X75C2DXJ392UIWKUVXDZ/ref=atv_dp",
+      "quality": "hd",
+      "audios": [
+        {
+          "language": "eng"
+        }
+      ],
+      "subtitles": [],
+      "price": {
+        "amount": "9.99",
+        "currency": "AUD",
+        "formatted": "9.99 AUD"
+      },
+      "expiresSoon": false,
+      "availableSince": 1728753289
+    },
+    {
+      "service": {
+        "id": "prime",
+        "name": "Prime Video",
+        "homePage": "https://www.primevideo.com",
+        "themeColorCode": "#00A8E1",
+        "imageSet": {
+          "lightThemeImage": "https://media.movieofthenight.com/services/prime/logo-light-theme.svg",
+          "darkThemeImage": "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg",
+          "whiteImage": "https://media.movieofthenight.com/services/prime/logo-white.svg"
+        }
+      },
+      "type": "rent",
+      "link": "https://www.primevideo.com/detail/0S3P89X75C2DXJ392UIWKUVXDZ/ref=atv_dp",
+      "quality": "hd",
+      "audios": [
+        {
+          "language": "eng"
+        }
+      ],
+      "subtitles": [],
+      "price": {
+        "amount": "4.99",
+        "currency": "AUD",
+        "formatted": "4.99 AUD"
+      },
+      "expiresSoon": false,
+      "availableSince": 1728753289
+    },
+    {
+      "service": {
+        "id": "prime",
+        "name": "Prime Video",
+        "homePage": "https://www.primevideo.com",
+        "themeColorCode": "#00A8E1",
+        "imageSet": {
+          "lightThemeImage": "https://media.movieofthenight.com/services/prime/logo-light-theme.svg",
+          "darkThemeImage": "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg",
+          "whiteImage": "https://media.movieofthenight.com/services/prime/logo-white.svg"
+        }
+      },
+      "type": "addon",
+      "addon": {
+        "id": "paramountplusau",
+        "name": "Paramount+",
+        "homePage": "https://www.primevideo.com/storefront?benefitId=paramountplusau",
+        "themeColorCode": "#000000",
+        "imageSet": {
+          "lightThemeImage": "https://media.movieofthenight.com/services/prime/au/addons/paramountplusau/light-theme.svg",
+          "darkThemeImage": "https://media.movieofthenight.com/services/prime/au/addons/paramountplusau/dark-theme.svg",
+          "whiteImage": "https://media.movieofthenight.com/services/prime/au/addons/paramountplusau/white.svg"
+        }
+      },
+      "link": "https://www.primevideo.com/detail/0FKUSLUHBPCRXKUAEPJWZ7398E/ref=atv_dp",
+      "quality": "sd",
+      "audios": [
+        {
+          "language": "eng"
+        }
+      ],
+      "subtitles": [],
+      "expiresSoon": false,
+      "availableSince": 1708807140
+    },
+    {
+      "service": {
+        "id": "prime",
+        "name": "Prime Video",
+        "homePage": "https://www.primevideo.com",
+        "themeColorCode": "#00A8E1",
+        "imageSet": {
+          "lightThemeImage": "https://media.movieofthenight.com/services/prime/logo-light-theme.svg",
+          "darkThemeImage": "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg",
+          "whiteImage": "https://media.movieofthenight.com/services/prime/logo-white.svg"
+        }
+      },
+      "type": "addon",
+      "addon": {
+        "id": "paramountplusau",
+        "name": "Paramount+",
+        "homePage": "https://www.primevideo.com/storefront?benefitId=paramountplusau",
+        "themeColorCode": "#000000",
+        "imageSet": {
+          "lightThemeImage": "https://media.movieofthenight.com/services/prime/au/addons/paramountplusau/light-theme.svg",
+          "darkThemeImage": "https://media.movieofthenight.com/services/prime/au/addons/paramountplusau/dark-theme.svg",
+          "whiteImage": "https://media.movieofthenight.com/services/prime/au/addons/paramountplusau/white.svg"
+        }
+      },
+      "link": "https://www.primevideo.com/detail/0S47NU8UQSFD3A9XUYSFOS1O19/ref=atv_dp",
+      "quality": "sd",
+      "audios": [
+        {
+          "language": "eng"
+        }
+      ],
+      "subtitles": [],
+      "expiresSoon": false,
+      "availableSince": 1721952925
+    },
+    {
+      "service": {
+        "id": "prime",
+        "name": "Prime Video",
+        "homePage": "https://www.primevideo.com",
+        "themeColorCode": "#00A8E1",
+        "imageSet": {
+          "lightThemeImage": "https://media.movieofthenight.com/services/prime/logo-light-theme.svg",
+          "darkThemeImage": "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg",
+          "whiteImage": "https://media.movieofthenight.com/services/prime/logo-white.svg"
+        }
+      },
+      "type": "rent",
+      "link": "https://www.primevideo.com/detail/0S47NU8UQSFD3A9XUYSFOS1O19/ref=atv_dp",
+      "quality": "hd",
+      "audios": [
+        {
+          "language": "eng"
+        }
+      ],
+      "subtitles": [],
+      "price": {
+        "amount": "4.99",
+        "currency": "AUD",
+        "formatted": "4.99 AUD"
+      },
+      "expiresSoon": false,
+      "availableSince": 1721952925
+    },
+    {
+      "service": {
+        "id": "prime",
+        "name": "Prime Video",
+        "homePage": "https://www.primevideo.com",
+        "themeColorCode": "#00A8E1",
+        "imageSet": {
+          "lightThemeImage": "https://media.movieofthenight.com/services/prime/logo-light-theme.svg",
+          "darkThemeImage": "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg",
+          "whiteImage": "https://media.movieofthenight.com/services/prime/logo-white.svg"
+        }
+      },
+      "type": "buy",
+      "link": "https://www.primevideo.com/detail/0S47NU8UQSFD3A9XUYSFOS1O19/ref=atv_dp",
+      "quality": "hd",
+      "audios": [
+        {
+          "language": "eng"
+        }
+      ],
+      "subtitles": [],
+      "price": {
+        "amount": "9.99",
+        "currency": "AUD",
+        "formatted": "9.99 AUD"
+      },
+      "expiresSoon": false,
+      "availableSince": 1721952925
+    },
+    {
+      "service": {
+        "id": "paramount",
+        "name": "Paramount+",
+        "homePage": "https://www.paramountplus.com/",
+        "themeColorCode": "#0064FF",
+        "imageSet": {
+          "lightThemeImage": "https://media.movieofthenight.com/services/paramount/logo-light-theme.svg",
+          "darkThemeImage": "https://media.movieofthenight.com/services/paramount/logo-dark-theme.svg",
+          "whiteImage": "https://media.movieofthenight.com/services/paramount/logo-white.svg"
+        }
+      },
+      "type": "subscription",
+      "link": "https://www.paramountplus.com/movies/video/qjvACFphAPQhCJKcJxNIpZ_fopkJypTd/",
+      "quality": "hd",
+      "audios": [
+        {
+          "language": "eng",
+          "region": "USA"
+        }
+      ],
+      "subtitles": [],
+      "expiresSoon": false,
+      "expiresOn": 1764478800,
+      "availableSince": 1703801543
+    }
+  ]
+}
