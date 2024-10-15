@@ -16,35 +16,59 @@
       crossorigin="anonymous"
     ></script>
   </head>
-  <body class="container">
-    <div class="pt-4">
-      <form id="form">
+  <body>
+    <div class="nav justify-content-center py-4">
+      <form id="form" class="d-flex align-items-center gap-2">
         <label for="movieSearch">
           <input
             type="text"
             name="movieSearch"
             id="movieSearch"
+            class="form-control"
             placeholder="Search..."
           />
         </label>
-        <button type="submit">Find Movie</button>
+        <button type="submit" class="btn btn-primary">Find Movie</button>
       </form>
     </div>
-    <main class="container py-4">
-      <div class="card" style="width: 18rem">
-        <img src="..." class="card-img-top" alt="..." />
-        <div class="card-body">
-          <h5 class="card-title">Card title</h5>
-          <p class="card-text">
-            Some quick example text to build on the card title and make up the
-            bulk of the card's content.
-          </p>
-          <a href="#" class="btn btn-primary">Go somewhere</a>
-        </div>
-      </div>
+    <main class=" container py-4">
+      <table class="table table-hover table-dark">
+        <thead>
+          <tr id="movie-details">
+            <th>Title</th>
+            <th>Year</th>
+            <th>Rated</th>
+            <th>Director</th>
+            <th>Plot</th>
+            <th>RT</th>
+            <th>IMDb</th>
+            <th>Metacritic</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="movie-row">
+            <th class="movie-title">Star Wars: Episode IV - A New Hope</td>
+            <td class="movie-year">1977</td>
+          <td class="movie-rated">PG</td>
+          <td class="movie-director">George Lucas</td>
+          <td class="movie-plot">Luke Skywalker joins forces with a Jedi Knight, a cocky pilot, 
+            a Wookiee and two droids to save the galaxy from the Empire's world-destroying battle station, 
+            while also attempting to rescue Princess Leia from the mysterious Darth Vader.</td>
+            <td class="movie-rt">93%</td>
+            <td class="movie-imdb">8.6/10</td>
+            <td class="movie-metacritic">90/100</td>
+          </tr>
+        </tbody>
+      </table>
     </main>
 
     <script>
+      const movie = document.querySelectorAll('tr.movie-row')
+
+      movie.forEach((result, i) => {
+        result.addEventListener("click", () => console.log(`hello from position ${i}`));
+      })
+
       const getForm = async (e) => {
         e.preventDefault();
         const movie = document.getElementById("movieSearch").value;
