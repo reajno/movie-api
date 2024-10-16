@@ -35,40 +35,38 @@
       class="d-none container py-4 d-flex flex-column gap-4 align-items-center"
     >
       <!-- RENDER TABLE ONCE SEARCH DATA RECEIVED -->
-      <table class="table table-hover table-dark">
-        <thead>
+      <table id="table" class="table table-hover table-dark w-75">
+        <!-- <thead>
           <tr id="movie-details">
             <th>Title</th>
             <th>Year</th>
           </tr>
-        </thead>
-        <tbody id="search-results">
-          <tr class="movie-row">
-            <!-- <th class="movie-title">Star Wars: Episode IV - A New Hope</th>
-            <td class="movie-year">1977</td> -->
-          </tr>
-        </tbody>
+        </thead> -->
+        <tbody id="search-results"></tbody>
       </table>
     </main>
 
     <script>
-      const movie = document.querySelectorAll("tr.movie-row");
+      // const movie = document.querySelectorAll("tr.movie-row");
 
-      movie.forEach((result, i) => {
-        result.addEventListener("click", () =>
-          console.log(`hello from position ${i}`)
-        );
-      });
+      // movie.forEach((result, i) => {
+      //   result.addEventListener("click", () =>
+      //     console.log(`hello from position ${i}`)
+      //   );
+      // });
+      const tableBody = document.getElementById("search-results");
+      const table = document.getElementById("table");
+      const mainContainer = document.querySelector("main.container");
 
       const getForm = async (e) => {
         e.preventDefault();
-        const movie = document.getElementById("movieSearch").value;
+        let movieInput = document.getElementById("movieSearch");
 
         try {
           let res = await fetch(
             // Send fetch request to API URL
             // with input value as search params in the URL.
-            `http://localhost:3000/movies/search/${movie}`
+            `http://localhost:3000/movies/search/${movieInput.value}`
           );
 
           if (!res.ok) {
@@ -77,20 +75,35 @@
           }
           const data = await res.json();
           const result = data.Search;
-
-          const tableBody = document.getElementById("search-results");
-          const mainContainer = document.querySelector("main.container");
           mainContainer.classList.remove("d-none");
 
+          // Clear table
+          table.innerHTML = "";
+          // Define table cell headers
+          const tableHeaderHTML = `<thead>
+          <tr>
+            <th>Title</th>
+            <th>Year</th>
+          </tr>
+        </thead>`;
+          // Add table headers
+          table.innerHTML = tableHeaderHTML;
+
           let searchResults = result.map((movie) => {
-            return `<tr class="movie-row">
-              <td class="movie-title">${movie.Title}</td>
-              <td class="movie-year">${movie.Year}</td>
-            </tr>`;
+            const { Title, Year, imdbID } = movie;
+
+            return `<tr class="movie" data-imdbID="${imdbID}" style="cursor:pointer">
+              <td class="movie-title">${Title}</td>
+              <td class="movie-year">${Year}</td>
+              </tr>`;
           });
 
-          searchResults = searchResults.join("");
-          tableBody.innerHTML = searchResults;
+          searchResultsHTML = searchResults.join("");
+          // Add searchResults after tableHeader
+          const tableHeader = document.querySelector("thead");
+          tableHeader.insertAdjacentHTML("afterend", searchResultsHTML);
+          // movieInput.value = "";
+          addCellEvent();
         } catch (error) {
           alert(error.message);
         }
@@ -98,6 +111,83 @@
 
       const form = document.getElementById("form");
       form.addEventListener("submit", getForm);
+
+      // When results populate, add event listener to fetch details
+      const addCellEvent = () => {
+        const results = document.querySelectorAll("tr.movie");
+
+        const getMovieDetails = async (e) => {
+          const imdbID = e.target.parentNode.dataset.imdbid;
+          try {
+            let res = await fetch(
+              `http://localhost:3000/movies/data/${imdbID}`
+            );
+
+            if (!res.ok) {
+              const errorData = await res.json();
+              throw errorData;
+            }
+
+            const data = await res.json();
+            table.innerHTML = "";
+
+            const {
+              Title,
+              Year,
+              Rated,
+              Genre,
+              Director,
+              Actors,
+              Awards,
+              Plot,
+            } = data.details;
+            const movieDetails = `<tbody>
+        <tr>
+          <th>Title</th>
+          <td class="movie-title">${Title}</td>
+        </tr>
+        <tr>
+          <th>Year</th>
+          <td class="movie-year">${Year}</td>
+        </tr>
+        <tr>
+          <th>Rated</th>
+          <td class="movie-rated">${Rated}</td>
+        </tr>
+        <tr>
+          <th>Genre</th>
+          <td class="movie-genre">${Genre}</td>
+        </tr>
+        <tr>
+          <th>Director</th>
+          <td class="movie-director">${Director}</td>
+        </tr>
+        <tr>
+          <th>Actors</th>
+          <td class="movie-actors">${Actors}</td>
+        </tr>
+        <tr>
+          <th>Awards</th>
+          <td class="movie-actors">${Awards}</td>
+        </tr>
+        <tr>
+          <th>Plot</th>
+          <td class="movie-plot">${Plot}</td>
+        </tr>
+      </tbody>`;
+
+            table.innerHTML = movieDetails;
+          } catch (error) {
+            alert(error.message);
+          }
+        };
+
+        if (results.length > 0) {
+          results.forEach((movie) => {
+            movie.addEventListener("click", getMovieDetails);
+          });
+        }
+      };
     </script>
   </body>
 </html>
