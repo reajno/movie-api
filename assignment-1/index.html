@@ -18,7 +18,7 @@
   </head>
   <body>
     <div class="nav justify-content-center py-4">
-      <form id="form" class="d-flex align-items-center gap-2">
+      <form id="movieSearchForm" class="d-flex align-items-center gap-2">
         <label for="movieSearch">
           <input
             type="text"
@@ -46,6 +46,17 @@
       </table>
     </main>
 
+    <div>
+      <form id="posterUploadForm" enctype="multipart/form-data">
+        <input
+          type="file"
+          name="poster"
+          id="posterUpload"
+          data-imdbID="tt0317219"
+        />
+        <button type="submit" class="btn btn-warning">Upload Poster</button>
+      </form>
+    </div>
     <script>
       // const movie = document.querySelectorAll("tr.movie-row");
 
@@ -57,6 +68,45 @@
       const tableBody = document.getElementById("search-results");
       const table = document.getElementById("table");
       const mainContainer = document.querySelector("main.container");
+
+      const renderSearchResults = (data) => {
+        table.innerHTML = "";
+        const movies = data.Search;
+
+        let searchResults = movies.map((movie) => {
+          const { Title, Year, imdbID } = movie;
+
+          return `<tr class="movie" data-imdbID="${imdbID}" style="cursor:pointer">
+              <td class="movie-title">${Title}</td>
+              <td class="movie-year">${Year}</td>
+              </tr>`;
+        });
+        searchResultsHTML = searchResults.join("");
+
+        // Define table cell headers
+        const tableHeaderHTML = `<thead>
+          <tr>
+            <th>Title</th>
+            <th>Year</th>
+            </tr>
+            </thead>`;
+        // Add table headers
+        table.innerHTML = tableHeaderHTML;
+        const tableHeader = document.querySelector("thead");
+        tableHeader.insertAdjacentHTML("afterend", searchResultsHTML);
+        mainContainer.classList.remove("d-none");
+        // movieInput.value = "";
+
+        const results = document.querySelectorAll("tr.movie");
+
+        if (results.length > 0) {
+          results.forEach((movie) => {
+            movie.addEventListener("click", getMovieDetails);
+          });
+        }
+
+        // addCellEvent();
+      };
 
       const getForm = async (e) => {
         e.preventDefault();
@@ -74,74 +124,39 @@
             throw errorData;
           }
           const data = await res.json();
-          const result = data.Search;
-          mainContainer.classList.remove("d-none");
-
-          // Clear table
-          table.innerHTML = "";
-          // Define table cell headers
-          const tableHeaderHTML = `<thead>
-          <tr>
-            <th>Title</th>
-            <th>Year</th>
-          </tr>
-        </thead>`;
-          // Add table headers
-          table.innerHTML = tableHeaderHTML;
-
-          let searchResults = result.map((movie) => {
-            const { Title, Year, imdbID } = movie;
-
-            return `<tr class="movie" data-imdbID="${imdbID}" style="cursor:pointer">
-              <td class="movie-title">${Title}</td>
-              <td class="movie-year">${Year}</td>
-              </tr>`;
-          });
-
-          searchResultsHTML = searchResults.join("");
-          // Add searchResults after tableHeader
-          const tableHeader = document.querySelector("thead");
-          tableHeader.insertAdjacentHTML("afterend", searchResultsHTML);
-          // movieInput.value = "";
-          addCellEvent();
+          renderSearchResults(data);
         } catch (error) {
           alert(error.message);
         }
       };
 
-      const form = document.getElementById("form");
-      form.addEventListener("submit", getForm);
+      const getMovieDetails = async (e) => {
+        const imdbID = e.target.parentNode.dataset.imdbid;
+        try {
+          let res = await fetch(`http://localhost:3000/movies/data/${imdbID}`);
 
-      // When results populate, add event listener to fetch details
-      const addCellEvent = () => {
-        const results = document.querySelectorAll("tr.movie");
+          if (!res.ok) {
+            const errorData = await res.json();
+            throw errorData;
+          }
 
-        const getMovieDetails = async (e) => {
-          const imdbID = e.target.parentNode.dataset.imdbid;
-          try {
-            let res = await fetch(
-              `http://localhost:3000/movies/data/${imdbID}`
-            );
+          const data = await res.json();
 
-            if (!res.ok) {
-              const errorData = await res.json();
-              throw errorData;
-            }
+          renderMovieDetails(data.details);
+        } catch (error) {
+          alert(error.message);
+        }
+      };
 
-            const data = await res.json();
-            table.innerHTML = "";
+      const movieSearchForm = document.getElementById("movieSearchForm");
+      movieSearchForm.addEventListener("submit", getForm);
 
-            const {
-              Title,
-              Year,
-              Rated,
-              Genre,
-              Director,
-              Actors,
-              Awards,
-              Plot,
-            } = data.details;
-            const movieDetails = `<tbody>
+      const renderMovieDetails = (detailsObj) => {
+        table.innerHTML = "";
+
+        const { Title, Year, Rated, Genre, Director, Actors, Awards, Plot } =
+          detailsObj;
+        const movieDetails = `<tbody>
         <tr>
           <th>Title</th>
           <td class="movie-title">${Title}</td>
@@ -176,18 +191,36 @@
         </tr>
       </tbody>`;
 
-            table.innerHTML = movieDetails;
-          } catch (error) {
-            alert(error.message);
-          }
-        };
+        table.innerHTML = movieDetails;
+      };
 
-        if (results.length > 0) {
-          results.forEach((movie) => {
-            movie.addEventListener("click", getMovieDetails);
+      const addPoster = async (e) => {
+        e.preventDefault();
+
+        const fileInput = document.getElementById("posterUpload");
+        const imdbID = fileInput.dataset.imdbid;
+        const file = fileInput.files[0];
+
+        const formData = new FormData();
+        formData.append("poster", file);
+
+        try {
+          console.log("making fetch call");
+          let res = await fetch(`http://localhost:3000/posters/add/${imdbID}`, {
+            method: "POST",
+            body: formData,
           });
+          console.log("fetch call complete");
+
+          const data = await res.json();
+          console.log(data);
+        } catch (error) {
+          console.error(error);
         }
       };
+
+      const posterUploadForm = document.getElementById("posterUploadForm");
+      posterUploadForm.addEventListener("submit", addPoster);
     </script>
   </body>
 </html>
