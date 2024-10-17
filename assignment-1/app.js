@@ -2,8 +2,6 @@ import http from "http";
 import dotenv from "dotenv";
 import { promises as fs } from "fs";
 // import fs from "fs";
-import formidable from "formidable";
-import Busboy from "busboy";
 import path from "path";
 dotenv.config();
 
@@ -189,91 +187,62 @@ const getMoviePoster = async (res, id) => {
 };
 
 const addMoviePoster = async (req, res, movieID) => {
-  const form = formidable({ keepExtensions: true });
-
-  form.uploadDir = path.join(process.cwd(), "uploads");
-
-  form.on("fileBegin", (name, file) => {
-    const newFileName = `${movieID}.png`;
-    file.filepath = path.join(form.uploadDir, newFileName);
-  });
-
-  form.parse(req, async (err, fields, files) => {
-    if (err) {
-      // Handle any errors during parsing
-      res.writeHead(400, {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      });
-      res.end(
-        JSON.stringify({
-          error: true,
-          message: "Failed to parse form data.",
-        })
-      );
-      return;
-    }
-    const posterFile = files.poster;
-    console.log(files);
-
-    // if (!posterFile) {
-    //   res.writeHead(400, {
-    //     "Content-Type": "application/json",
-    //     "Access-Control-Allow-Origin": "*",
-    //   });
-    //   res.end(
-    //     JSON.stringify({
-    //       error: true,
-    //       message: "No file uploaded.",
-    //     })
-    //   );
-    //   return;
-    // }
-
-    // try {
-    //   res.writeHead(200, {
-    //     "Content-Type": "application/json",
-    //     "Access-Control-Allow-Origin": "*",
-    //     "Access-Control-Allow-Methods": "POST",
-    //   });
-    //   res.write(
-    //     JSON.stringify({
-    //       error: false,
-    //       message: "Poster Uploaded Successfully",
-    //     })
-    //   );
-    //   res.end();
-    // } catch (error) {
-    //   console.error(error);
-    //   res.writeHead(500, {
-    //     "Content-Type": "application/json",
-    //     "Access-Control-Allow-Origin": "*",
-    //   });
-    //   res.end(
-    //     JSON.stringify({
-    //       error: true,
-    //       message: "Failed to save poster.",
-    //     })
-    //   );
-    // }
-  });
-
-  form.on("end", () => {
-    res.writeHead(200, {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST",
-    });
-    res.write(
-      JSON.stringify({
-        error: false,
-        message: "Poster Uploaded Successfully",
-      })
-    );
-    res.end();
-  });
-
   try {
+    if (!movieID) {
+      throw {
+        message: "You must supply an imdbID!",
+      };
+    }
+
+    const contentType = req.headers["content-type"];
+    console.log(contentType);
+    if (contentType !== "image/png") {
+      throw {
+        message: "A filetype other than png has been provided.",
+      };
+    }
+
+    let body = [];
+
+    req.on("data", (chunk) => {
+      body.push(chunk);
+    });
+
+    req.on("end", async () => {
+      try {
+        const buffer = Buffer.concat(body);
+        const filename = `${movieID}.png`;
+        const fileExtension = path.extname(filename);
+        console.log(fileExtension);
+        const savePath = path.join(process.cwd(), "uploads", filename);
+        await fs.writeFile(savePath, buffer);
+
+        res.writeHead(200, {
+          "Access-Control-Allow-Origin": "*",
+          "Content-Type": "application/json",
+        });
+        res.end(
+          JSON.stringify({
+            error: false,
+            message: "Image uploaded and processed!",
+          })
+        );
+      } catch (error) {
+        const statusCode = error.statusCode;
+        res.writeHead(statusCode, {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        });
+        res.write(
+          JSON.stringify({
+            error: true,
+            message:
+              error.message || "The remote server returned an invalid response",
+          })
+        );
+        res.end();
+      }
+    });
   } catch (error) {
     res.writeHead(400, {
       "Content-Type": "application/json",
@@ -282,70 +251,17 @@ const addMoviePoster = async (req, res, movieID) => {
     res.end(
       JSON.stringify({
         error: true,
-        message: "Failed to parse form data.",
+        message: error.message,
       })
     );
   }
+};
 
-  // form.parse(req, async (err, fields, files) => {
-  //   if (err) {
-  //     // Handle any errors during parsing
-  //     res.writeHead(400, {
-  //       "Content-Type": "application/json",
-  //       "Access-Control-Allow-Origin": "*",
-  //     });
-  //     res.end(
-  //       JSON.stringify({
-  //         error: true,
-  //         message: "Failed to parse form data.",
-  //       })
-  //     );
-  //     return;
-  //   }
-  //   const posterFile = files.poster;
-  //   console.log(files);
-
-  //   // if (!posterFile) {
-  //   //   res.writeHead(400, {
-  //   //     "Content-Type": "application/json",
-  //   //     "Access-Control-Allow-Origin": "*",
-  //   //   });
-  //   //   res.end(
-  //   //     JSON.stringify({
-  //   //       error: true,
-  //   //       message: "No file uploaded.",
-  //   //     })
-  //   //   );
-  //   //   return;
-  //   // }
-
-  //   try {
-  //     res.writeHead(200, {
-  //       "Content-Type": "application/json",
-  //       "Access-Control-Allow-Origin": "*",
-  //       "Access-Control-Allow-Methods": "POST",
-  //     });
-  //     res.write(
-  //       JSON.stringify({
-  //         error: false,
-  //         message: "Poster Uploaded Successfully",
-  //       })
-  //     );
-  //     res.end();
-  //   } catch (error) {
-  //     console.error(error);
-  //     res.writeHead(500, {
-  //       "Content-Type": "application/json",
-  //       "Access-Control-Allow-Origin": "*",
-  //     });
-  //     res.end(
-  //       JSON.stringify({
-  //         error: true,
-  //         message: "Failed to save poster.",
-  //       })
-  //     );
-  //   }
-  // });
+const sendCorsHeaders = (res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  // res.setHeader("Access-Control-Allow-Methods", "POST");
+  // res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  // res.setHeader("Access-Control-Max-Age", "86400"); // Cache preflight for 24 hours
 };
 
 const routing = (req, res) => {
@@ -354,15 +270,15 @@ const routing = (req, res) => {
   const path = reqUrl.pathname;
   const method = req.method;
 
-  // if (method === "OPTIONS") {
-  //   res.writeHead(200, {
-  //     "Access-Control-Allow-Origin": "*", // Allow all origins
-  //     "Access-Control-Allow-Methods": "POST", // Allow specific methods
-  //     "Access-Control-Allow-Headers": "Content-Type", // Allow specific headers
-  //   });
-  //   res.end(); // End the preflight request handling
-  //   return;
-  // }
+  if (method === "OPTIONS") {
+    res.writeHead(204, {
+      "Access-Control-Allow-Origin": "*", // Allow requests from any origin
+      "Access-Control-Allow-Methods": "POST", // Allowed methods
+      "Access-Control-Allow-Headers": "Content-Type", // Allowed headers
+    });
+    res.end();
+    return;
+  }
 
   if (path.startsWith("/movies/search") && method === "GET") {
     const movieTitle = path.replace("/movies/search/", "");

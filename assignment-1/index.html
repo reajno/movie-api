@@ -47,7 +47,7 @@
     </main>
 
     <div>
-      <form id="posterUploadForm" enctype="multipart/form-data">
+      <form id="posterUploadForm">
         <input
           type="file"
           name="poster"
@@ -58,13 +58,6 @@
       </form>
     </div>
     <script>
-      // const movie = document.querySelectorAll("tr.movie-row");
-
-      // movie.forEach((result, i) => {
-      //   result.addEventListener("click", () =>
-      //     console.log(`hello from position ${i}`)
-      //   );
-      // });
       const tableBody = document.getElementById("search-results");
       const table = document.getElementById("table");
       const mainContainer = document.querySelector("main.container");
@@ -200,22 +193,33 @@
         const fileInput = document.getElementById("posterUpload");
         const imdbID = fileInput.dataset.imdbid;
         const file = fileInput.files[0];
-
-        const formData = new FormData();
-        formData.append("poster", file);
-
-        try {
-          console.log("making fetch call");
-          let res = await fetch(`http://localhost:3000/posters/add/${imdbID}`, {
-            method: "POST",
-            body: formData,
-          });
-          console.log("fetch call complete");
-
-          const data = await res.json();
-          console.log(data);
-        } catch (error) {
-          console.error(error);
+        if (file) {
+          try {
+            const arrayBuffer = await file.arrayBuffer();
+            console.log("making fetch call");
+            // console.log(arrayBuffer);
+            let res = await fetch(
+              // `http://localhost:3000/posters/add/`,
+              `http://localhost:3000/posters/add/${imdbID}`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": file.type,
+                  // "Content-Type": "image/png",
+                  // "Content-Type": "application/octet-stream",
+                  // "Access-Control-Allow-Origin": "*",
+                  // "Content-Length": file.size,
+                  // "X-Filename": file.name,
+                },
+                body: arrayBuffer,
+              }
+            );
+            console.log("fetch call complete");
+            const data = await res.json();
+            console.log(data);
+          } catch (error) {
+            console.error(error);
+          }
         }
       };
 
