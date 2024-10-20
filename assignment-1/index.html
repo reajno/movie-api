@@ -46,21 +46,10 @@
       </table>
     </main>
 
-    <div>
-      <form id="posterUploadForm">
-        <input
-          type="file"
-          name="poster"
-          id="posterUpload"
-          data-imdbID="tt0317219"
-        />
-        <button type="submit" class="btn btn-warning">Upload Poster</button>
-      </form>
-    </div>
     <script>
+      const mainContainer = document.querySelector("main.container");
       const tableBody = document.getElementById("search-results");
       const table = document.getElementById("table");
-      const mainContainer = document.querySelector("main.container");
 
       const renderSearchResults = (data) => {
         table.innerHTML = "";
@@ -97,58 +86,21 @@
             movie.addEventListener("click", getMovieDetails);
           });
         }
-
-        // addCellEvent();
       };
-
-      const getForm = async (e) => {
-        e.preventDefault();
-        let movieInput = document.getElementById("movieSearch");
-
-        try {
-          let res = await fetch(
-            // Send fetch request to API URL
-            // with input value as search params in the URL.
-            `http://localhost:3000/movies/search/${movieInput.value}`
-          );
-
-          if (!res.ok) {
-            const errorData = await res.json();
-            throw errorData;
-          }
-          const data = await res.json();
-          renderSearchResults(data);
-        } catch (error) {
-          alert(error.message);
-        }
-      };
-
-      const getMovieDetails = async (e) => {
-        const imdbID = e.target.parentNode.dataset.imdbid;
-        try {
-          let res = await fetch(`http://localhost:3000/movies/data/${imdbID}`);
-
-          if (!res.ok) {
-            const errorData = await res.json();
-            throw errorData;
-          }
-
-          const data = await res.json();
-
-          renderMovieDetails(data.details);
-        } catch (error) {
-          alert(error.message);
-        }
-      };
-
-      const movieSearchForm = document.getElementById("movieSearchForm");
-      movieSearchForm.addEventListener("submit", getForm);
 
       const renderMovieDetails = (detailsObj) => {
         table.innerHTML = "";
-
-        const { Title, Year, Rated, Genre, Director, Actors, Awards, Plot } =
-          detailsObj;
+        const {
+          Title,
+          Year,
+          Rated,
+          Genre,
+          Director,
+          Actors,
+          Awards,
+          Plot,
+          imdbID,
+        } = detailsObj;
         const movieDetails = `<tbody>
         <tr>
           <th>Title</th>
@@ -185,7 +137,81 @@
       </tbody>`;
 
         table.innerHTML = movieDetails;
+
+        // <button class="btn btn-success me-3">Show Poster</button>
+
+        const posterBtnGroup = `
+        <div>
+          <form id="posterUploadForm">
+            <input
+            type="file"
+            name="poster"
+            id="posterUpload"
+            data-imdbID="${imdbID}"
+            />
+            <button type="submit" class="btn btn-warning">
+              Upload Poster
+              </button>
+              </form>
+              <button 
+                id="posterDisplayBtn" 
+                class="mt-4 btn btn-success w-100"
+                data-imdbID="${imdbID}">Show Poster
+              </button>
+              </div>
+        `;
+
+        table.insertAdjacentHTML("afterend", posterBtnGroup);
+        const posterUploadForm = document.getElementById("posterUploadForm");
+        posterUploadForm.addEventListener("submit", addPoster);
+
+        const posterDisplayBtn = document.getElementById("posterDisplayBtn");
+        posterDisplayBtn.addEventListener("click", showPoster);
       };
+
+      const getForm = async (e) => {
+        e.preventDefault();
+        let movieInput = document.getElementById("movieSearch");
+
+        try {
+          let res = await fetch(
+            // Send fetch request to API URL
+            // with input value as search params in the URL.
+            `http://localhost:3000/movies/search/${movieInput.value}`
+          );
+
+          if (!res.ok) {
+            const errorData = await res.json();
+            throw errorData;
+          }
+          const data = await res.json();
+          renderSearchResults(data);
+          table.nextElementSibling ? table.nextElementSibling.remove() : null;
+        } catch (error) {
+          alert(error.message);
+        }
+      };
+
+      const getMovieDetails = async (e) => {
+        const imdbID = e.target.parentNode.dataset.imdbid;
+        try {
+          let res = await fetch(`http://localhost:3000/movies/data/${imdbID}`);
+
+          if (!res.ok) {
+            const errorData = await res.json();
+            throw errorData;
+          }
+
+          const data = await res.json();
+
+          renderMovieDetails(data.details);
+        } catch (error) {
+          alert(error.message);
+        }
+      };
+
+      const movieSearchForm = document.getElementById("movieSearchForm");
+      movieSearchForm.addEventListener("submit", getForm);
 
       const addPoster = async (e) => {
         e.preventDefault();
@@ -196,10 +222,7 @@
         if (file) {
           try {
             const arrayBuffer = await file.arrayBuffer();
-            console.log("making fetch call");
-            // console.log(arrayBuffer);
             let res = await fetch(
-              // `http://localhost:3000/posters/add/`,
               `http://localhost:3000/posters/add/${imdbID}`,
               {
                 method: "POST",
@@ -218,13 +241,22 @@
             const data = await res.json();
             console.log(data);
           } catch (error) {
-            console.error(error);
+            alert(error.message);
           }
         }
       };
 
-      const posterUploadForm = document.getElementById("posterUploadForm");
-      posterUploadForm.addEventListener("submit", addPoster);
+      const showPoster = async (e) => {
+        e.preventDefault();
+        try {
+          const imdbID = e.target.dataset.imdbid;
+          let res = await fetch(`http://localhost:3000/posters/${imdbID}`);
+          console.log(res);
+          // console.log(data);
+        } catch (error) {
+          alert(error.message);
+        }
+      };
     </script>
   </body>
 </html>

@@ -158,10 +158,9 @@ const getMoviePoster = async (res, id) => {
         message: "You must supply an imdbID!",
       };
     }
-
-    const fileName = `${id}.png`;
-
-    const img = await fs.readFile(fileName, "binary");
+    const filename = `${id}.png`;
+    const filepath = path.join(process.cwd(), "uploads", filename);
+    const img = await fs.readFile(filepath, "base64");
 
     res.writeHead(200, {
       "Content-Type": "image/png",
@@ -244,6 +243,7 @@ const addMoviePoster = async (req, res, movieID) => {
       }
     });
   } catch (error) {
+    // Both errors are status 400
     res.writeHead(400, {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
@@ -259,9 +259,6 @@ const addMoviePoster = async (req, res, movieID) => {
 
 const sendCorsHeaders = (res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  // res.setHeader("Access-Control-Allow-Methods", "POST");
-  // res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  // res.setHeader("Access-Control-Max-Age", "86400"); // Cache preflight for 24 hours
 };
 
 const routing = (req, res) => {
