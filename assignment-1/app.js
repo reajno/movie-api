@@ -160,13 +160,13 @@ const getMoviePoster = async (res, id) => {
     }
     const filename = `${id}.png`;
     const filepath = path.join(process.cwd(), "uploads", filename);
-    const img = await fs.readFile(filepath, "base64");
+    const img = await fs.readFile(filepath);
 
     res.writeHead(200, {
       "Content-Type": "image/png",
       "Access-Control-Allow-Origin": "*",
     });
-    res.write(img, "binary");
+    res.write(img, "base64");
     res.end();
   } catch (error) {
     const statusCode = error.code === "ENOENT" ? 500 : error.statusCode;
@@ -281,13 +281,9 @@ const routing = (req, res) => {
     const movieTitle = path.replace("/movies/search/", "");
     getMoviesList(res, movieTitle);
   } else if (path.startsWith("/movies/data") && method === "GET") {
-    // const reqUrl = new URL(req.url, `http://${req.headers.host}`);
-    // const path = reqUrl.pathname;
     const movieID = path.replace("/movies/data/", "");
     getCombinedMovieData(res, movieID);
   } else if (path.startsWith("/posters") && method === "GET") {
-    // const reqUrl = new URL(req.url, `http://${req.headers.host}`);
-    // const path = reqUrl.pathname;
     const movieID = path.replace("/posters/", "");
     getMoviePoster(res, movieID);
   } else if (path.startsWith("/posters/add") && method === "POST") {

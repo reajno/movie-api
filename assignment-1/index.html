@@ -18,6 +18,7 @@
   </head>
   <body>
     <div class="nav justify-content-center py-4">
+      <h1>Ratings + Streaming App</h1>
       <form id="movieSearchForm" class="d-flex align-items-center gap-2">
         <label for="movieSearch">
           <input
@@ -30,29 +31,40 @@
         </label>
         <button type="submit" class="btn btn-primary">Find Movie</button>
       </form>
+
+      <div class="card" style="width: 18rem">
+        <div class="card-body d-flex flex-column gap-2">
+          <h5 class="card-title text-center fw-bold">Now Streaming</h5>
+          <div class="streamers d-flex justify-content-center gap-4">
+            <button>disney</button>
+            <button>prime</button>
+            <button>binge</button>
+          </div>
+        </div>
+      </div>
     </div>
     <main
       class="d-none container py-4 d-flex flex-column gap-4 align-items-center"
     >
-      <!-- RENDER TABLE ONCE SEARCH DATA RECEIVED -->
-      <table id="table" class="table table-hover table-dark w-75">
-        <!-- <thead>
-          <tr id="movie-details">
-            <th>Title</th>
-            <th>Year</th>
-          </tr>
-        </thead> -->
-        <tbody id="search-results"></tbody>
-      </table>
+
     </main>
 
     <script>
       const mainContainer = document.querySelector("main.container");
       const tableBody = document.getElementById("search-results");
-      const table = document.getElementById("table");
+      // const table = document.getElementById("table");
 
       const renderSearchResults = (data) => {
-        table.innerHTML = "";
+        mainContainer.innerHTML = "";
+        mainContainer.innerHTML = `<table id="table" class="table table-hover table-dark w-75">
+          <thead>
+          <tr>
+            <th>Title</th>
+            <th>Year</th>
+            </tr>
+            </thead>
+        </table>`
+
         const movies = data.Search;
 
         let searchResults = movies.map((movie) => {
@@ -65,15 +77,6 @@
         });
         searchResultsHTML = searchResults.join("");
 
-        // Define table cell headers
-        const tableHeaderHTML = `<thead>
-          <tr>
-            <th>Title</th>
-            <th>Year</th>
-            </tr>
-            </thead>`;
-        // Add table headers
-        table.innerHTML = tableHeaderHTML;
         const tableHeader = document.querySelector("thead");
         tableHeader.insertAdjacentHTML("afterend", searchResultsHTML);
         mainContainer.classList.remove("d-none");
@@ -89,7 +92,8 @@
       };
 
       const renderMovieDetails = (detailsObj) => {
-        table.innerHTML = "";
+        // const table = document.getElementById("table");
+        mainContainer.innerHTML = "";
         const {
           Title,
           Year,
@@ -101,45 +105,46 @@
           Plot,
           imdbID,
         } = detailsObj;
-        const movieDetails = `<tbody>
+        const movieDetails = `
+        <table id="table" class="table table-hover table-dark w-75">
+          <tbody>
         <tr>
           <th>Title</th>
           <td class="movie-title">${Title}</td>
-        </tr>
-        <tr>
-          <th>Year</th>
-          <td class="movie-year">${Year}</td>
-        </tr>
-        <tr>
-          <th>Rated</th>
-          <td class="movie-rated">${Rated}</td>
-        </tr>
-        <tr>
+          </tr>
+          <tr>
+            <th>Year</th>
+            <td class="movie-year">${Year}</td>
+            </tr>
+            <tr>
+              <th>Rated</th>
+              <td class="movie-rated">${Rated}</td>
+              </tr>
+              <tr>
           <th>Genre</th>
           <td class="movie-genre">${Genre}</td>
         </tr>
         <tr>
           <th>Director</th>
           <td class="movie-director">${Director}</td>
-        </tr>
-        <tr>
+          </tr>
+          <tr>
           <th>Actors</th>
           <td class="movie-actors">${Actors}</td>
-        </tr>
-        <tr>
-          <th>Awards</th>
-          <td class="movie-actors">${Awards}</td>
-        </tr>
-        <tr>
+          </tr>
+          <tr>
+            <th>Awards</th>
+            <td class="movie-actors">${Awards}</td>
+            </tr>
+            <tr>
           <th>Plot</th>
           <td class="movie-plot">${Plot}</td>
-        </tr>
-      </tbody>`;
-
-        table.innerHTML = movieDetails;
-
-        // <button class="btn btn-success me-3">Show Poster</button>
-
+          </tr>
+          </tbody>
+          </table>`
+          
+        mainContainer.innerHTML = movieDetails;
+          
         const posterBtnGroup = `
         <div>
           <form id="posterUploadForm">
@@ -161,12 +166,13 @@
               </div>
         `;
 
+        const table = document.getElementById("table");
         table.insertAdjacentHTML("afterend", posterBtnGroup);
         const posterUploadForm = document.getElementById("posterUploadForm");
         posterUploadForm.addEventListener("submit", addPoster);
 
         const posterDisplayBtn = document.getElementById("posterDisplayBtn");
-        posterDisplayBtn.addEventListener("click", showPoster);
+        posterDisplayBtn.addEventListener("click", getPoster);
       };
 
       const getForm = async (e) => {
@@ -246,13 +252,12 @@
         }
       };
 
-      const showPoster = async (e) => {
+      const getPoster = async (e) => {
         e.preventDefault();
         try {
           const imdbID = e.target.dataset.imdbid;
           let res = await fetch(`http://localhost:3000/posters/${imdbID}`);
           console.log(res);
-          // console.log(data);
         } catch (error) {
           alert(error.message);
         }
