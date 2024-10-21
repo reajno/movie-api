@@ -219,7 +219,7 @@ const addMoviePoster = async (req, res, movieID) => {
         res.end(
           JSON.stringify({
             error: false,
-            message: "Image uploaded and processed!",
+            message: "Poster Uploaded Successfully",
           })
         );
       } catch (error) {

@@ -200,7 +200,6 @@
           }
 
           const data = await res.json();
-
           renderMovieDetails(data.details);
         } catch (error) {
           alert(error.message);
@@ -224,8 +223,14 @@
                 body: image,
               }
             );
+
+            if (!res.ok) {
+              const errorData = await res.json();
+              throw errorData;
+            }
+
             const data = await res.json();
-            console.log(data);
+            alert(data.message);
           } catch (error) {
             alert(error.message);
           }
