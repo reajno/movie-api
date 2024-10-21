@@ -35,27 +35,27 @@
       class="d-none container py-4 d-flex flex-column gap-4 align-items-center"
     >
       <!-- RENDER TABLE ONCE SEARCH DATA RECEIVED -->
-      <table id="table" class="table table-hover table-dark w-75">
-        <!-- <thead>
-          <tr id="movie-details">
-            <th>Title</th>
-            <th>Year</th>
-          </tr>
-        </thead> -->
-        <tbody id="search-results"></tbody>
-      </table>
     </main>
 
     <script>
       const mainContainer = document.querySelector("main.container");
       const tableBody = document.getElementById("search-results");
-      const table = document.getElementById("table");
+      const movieInput = document.getElementById("movieSearch");
 
       const renderSearchResults = (data) => {
-        table.innerHTML = "";
+        mainContainer.innerHTML = `
+         <table id="table" class="table table-hover table-dark w-75">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Year</th>
+              </tr>
+              </thead>
+              </table>`;
+
         const movies = data.Search;
 
-        let searchResults = movies.map((movie) => {
+        const searchResults = movies.map((movie) => {
           const { Title, Year, imdbID } = movie;
 
           return `<tr class="movie" data-imdbID="${imdbID}" style="cursor:pointer">
@@ -65,20 +65,14 @@
         });
         searchResultsHTML = searchResults.join("");
 
-        // Define table cell headers
-        const tableHeaderHTML = `<thead>
-          <tr>
-            <th>Title</th>
-            <th>Year</th>
-            </tr>
-            </thead>`;
-        // Add table headers
-        table.innerHTML = tableHeaderHTML;
         const tableHeader = document.querySelector("thead");
         tableHeader.insertAdjacentHTML("afterend", searchResultsHTML);
-        mainContainer.classList.remove("d-none");
-        // movieInput.value = "";
+        mainContainer.classList.contains("d-none")
+          ? mainContainer.classList.remove("d-none")
+          : null;
+        movieInput.value = "";
 
+        // Add event listener to each result
         const results = document.querySelectorAll("tr.movie");
 
         if (results.length > 0) {
@@ -89,7 +83,6 @@
       };
 
       const renderMovieDetails = (detailsObj) => {
-        table.innerHTML = "";
         const {
           Title,
           Year,
@@ -101,6 +94,10 @@
           Plot,
           imdbID,
         } = detailsObj;
+
+        mainContainer.innerHTML = `
+         <table id="table" class="table table-hover table-dark w-75"></table>`;
+
         const movieDetails = `<tbody>
         <tr>
           <th>Title</th>
@@ -136,9 +133,8 @@
         </tr>
       </tbody>`;
 
+        const table = document.getElementById("table");
         table.innerHTML = movieDetails;
-
-        // <button class="btn btn-success me-3">Show Poster</button>
 
         const posterBtnGroup = `
         <div>
@@ -147,31 +143,33 @@
             type="file"
             name="poster"
             id="posterUpload"
-            data-imdbID="${imdbID}"
             />
             <button type="submit" class="btn btn-warning">
               Upload Poster
               </button>
               </form>
-              <button 
-                id="posterDisplayBtn" 
-                class="mt-4 btn btn-success w-100"
-                data-imdbID="${imdbID}">Show Poster
+              <button
+                id="posterDisplayBtn"
+                class="mt-4 btn btn-success w-100">Show Poster
               </button>
+              <img id="moviePoster" class="d-none" src="" alt="Movie Poster">
               </div>
         `;
 
         table.insertAdjacentHTML("afterend", posterBtnGroup);
         const posterUploadForm = document.getElementById("posterUploadForm");
-        posterUploadForm.addEventListener("submit", addPoster);
+        posterUploadForm.addEventListener("submit", (e) =>
+          addPoster(e, imdbID)
+        );
 
         const posterDisplayBtn = document.getElementById("posterDisplayBtn");
-        posterDisplayBtn.addEventListener("click", showPoster);
+        posterDisplayBtn.addEventListener("click", (e) =>
+          showPoster(e, imdbID)
+        );
       };
 
       const getForm = async (e) => {
         e.preventDefault();
-        let movieInput = document.getElementById("movieSearch");
 
         try {
           let res = await fetch(
@@ -186,7 +184,6 @@
           }
           const data = await res.json();
           renderSearchResults(data);
-          table.nextElementSibling ? table.nextElementSibling.remove() : null;
         } catch (error) {
           alert(error.message);
         }
@@ -213,31 +210,20 @@
       const movieSearchForm = document.getElementById("movieSearchForm");
       movieSearchForm.addEventListener("submit", getForm);
 
-      const addPoster = async (e) => {
+      const addPoster = async (e, imdbID) => {
         e.preventDefault();
 
         const fileInput = document.getElementById("posterUpload");
-        const imdbID = fileInput.dataset.imdbid;
-        const file = fileInput.files[0];
-        if (file) {
+        const image = fileInput.files[0];
+        if (image) {
           try {
-            const arrayBuffer = await file.arrayBuffer();
             let res = await fetch(
               `http://localhost:3000/posters/add/${imdbID}`,
               {
                 method: "POST",
-                headers: {
-                  "Content-Type": file.type,
-                  // "Content-Type": "image/png",
-                  // "Content-Type": "application/octet-stream",
-                  // "Access-Control-Allow-Origin": "*",
-                  // "Content-Length": file.size,
-                  // "X-Filename": file.name,
-                },
-                body: arrayBuffer,
+                body: image,
               }
             );
-            console.log("fetch call complete");
             const data = await res.json();
             console.log(data);
           } catch (error) {
@@ -246,13 +232,23 @@
         }
       };
 
-      const showPoster = async (e) => {
+      const renderMoviePoster = (imgSrc) => {
+        const moviePoster = document.getElementById("moviePoster");
+        imgSrc ? moviePoster.classList.toggle("d-none") : null;
+
+        moviePoster.src = imgSrc;
+      };
+
+      const showPoster = async (e, imdbID) => {
         e.preventDefault();
         try {
-          const imdbID = e.target.dataset.imdbid;
           let res = await fetch(`http://localhost:3000/posters/${imdbID}`);
-          console.log(res);
-          // console.log(data);
+          if (!res.ok) {
+            const errorData = await res.json();
+            throw errorData;
+          }
+          const imgSrc = await res.url;
+          renderMoviePoster(imgSrc);
         } catch (error) {
           alert(error.message);
         }

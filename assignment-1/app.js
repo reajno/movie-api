@@ -160,14 +160,13 @@ const getMoviePoster = async (res, id) => {
     }
     const filename = `${id}.png`;
     const filepath = path.join(process.cwd(), "uploads", filename);
-    const img = await fs.readFile(filepath, "base64");
+    const img = await fs.readFile(filepath);
 
     res.writeHead(200, {
       "Content-Type": "image/png",
       "Access-Control-Allow-Origin": "*",
     });
-    res.write(img, "binary");
-    res.end();
+    res.end(img);
   } catch (error) {
     const statusCode = error.code === "ENOENT" ? 500 : error.statusCode;
     res.writeHead(statusCode, {
@@ -194,7 +193,6 @@ const addMoviePoster = async (req, res, movieID) => {
     }
 
     const contentType = req.headers["content-type"];
-    console.log(contentType);
     if (contentType !== "image/png") {
       throw {
         message: "A filetype other than png has been provided.",
@@ -211,8 +209,6 @@ const addMoviePoster = async (req, res, movieID) => {
       try {
         const buffer = Buffer.concat(body);
         const filename = `${movieID}.png`;
-        const fileExtension = path.extname(filename);
-        console.log(fileExtension);
         const savePath = path.join(process.cwd(), "uploads", filename);
         await fs.writeFile(savePath, buffer);
 
