@@ -189,9 +189,10 @@ const renderPosterElements = (imdbID) => {
          <div class="container text-center">
            <form id="posterUploadForm">
              <input
+             id="posterUpload"
              type="file"
              name="poster"
-             id="posterUpload"
+             accept=".png"
              />
              <button type="submit" class="btn btn-warning">
                Upload Poster
@@ -256,7 +257,7 @@ const getMovieDetails = async (e) => {
 
     const data = await res.json();
     renderMovieDetails(data.details);
-    // renderStreamingDetails(data.streamingInfo);
+    renderStreamingDetails(data.streamingInfo);
     renderPosterElements(data.details.imdbID);
   } catch (error) {
     alert(error.message);
@@ -293,7 +294,10 @@ const addPoster = async (e, imdbID) => {
 
   const fileInput = document.getElementById("posterUpload");
   const image = fileInput.files[0];
-  if (image) {
+
+  if (!image) {
+    alert("Please select a file to upload");
+  } else {
     try {
       let res = await fetch(`http://localhost:3000/posters/add/${imdbID}`, {
         method: "POST",

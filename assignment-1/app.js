@@ -62,59 +62,63 @@ const getMoviesList = async (res, movieTitle) => {
 
 const getStreamingData = async (id) => {
   try {
-    const rapidResponse = await fetch(`${RAPID_BASE_URL}/${id}`, {
+    const response = await fetch(`${RAPID_BASE_URL}/${id}`, {
       headers: {
         "X-RapidAPI-Key": RAPID_KEY,
       },
     });
 
-    if (rapidResponse.status === 404) {
-      throw {
-        statusCode: 400,
-        message: "Incorrect IMDb ID.",
-      };
+    if (!response.ok) {
+      throw new Error();
     }
 
-    // if (!rapidResponse.ok) {
-    //   console.log(rapidResponse);
-    //   throw {
-    //     statusCode: 500,
-    //     message: "The remote streaming server returned an invalid response",
-    //   };
-    // }
-
-    const data = await rapidResponse.json();
+    const data = await response.json();
     // return JSON response to be combined
     return { streamingInfo: data.streamingOptions.au };
   } catch (error) {
-    throw error;
+    throw {
+      statusCode: 500,
+      message: "The remote streaming server returned an invalid response",
+    };
   }
 };
 
 const getMovieData = async (id) => {
   try {
-    const omdbResponse = await fetch(
+    const response = await fetch(
       `${OMDB_BASE_URL}/?apikey=${OMDB_KEY}&i=${id}`
     );
 
-    const omdbData = await omdbResponse.json();
+    if (!response.ok) {
+      throw new Error();
+    }
 
-    if (omdbData.Response === "False") {
-      throw {
-        statusCode: 400,
-        message: omdbData.Error,
-      };
+    const data = await response.json();
+
+    // Handle invalid 200 response (E.G. API response below is status 200)
+    //   {
+    //     "details": {
+    //         "Response": "False",
+    //         "Error": "Incorrect IMDb ID."
+    //     }
+    // }
+    if (data.Response === "False") {
+      throw new Error();
     }
 
     // return JSON response to be combined
-    return { details: omdbData };
+    return { details: data };
   } catch (error) {
-    throw error;
+    throw {
+      statusCode: 500,
+      message: "The remote detail server returned an invalid response",
+    };
   }
 };
 
 const getCombinedMovieData = async (res, id) => {
   try {
+    // Status 400 error is handled here
     if (!id) {
       throw {
         statusCode: 400,
@@ -138,7 +142,7 @@ const getCombinedMovieData = async (res, id) => {
     res.write(JSON.stringify(result));
     res.end();
   } catch (error) {
-    const statusCode = error.statusCode || 500;
+    const statusCode = error.statusCode;
     res.writeHead(statusCode, {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
@@ -146,8 +150,7 @@ const getCombinedMovieData = async (res, id) => {
     res.write(
       JSON.stringify({
         error: true,
-        message:
-          error.message || "The remote server returned an invalid response",
+        message: error.message,
       })
     );
     res.end();
