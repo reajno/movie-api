@@ -28,12 +28,23 @@
             placeholder="Search..."
           />
         </label>
-        <button type="submit" class="btn btn-primary">Find Movie</button>
+        <button id="movieSearchBtn" type="submit" class="btn btn-primary">
+          Find Movie
+        </button>
       </form>
     </div>
 
-    <main class="container d-none py-4 d-flex flex-column gap-4 align-items-center">
-    </main>
+    <div
+      id="loadingIndicator"
+      class="d-none d-flex flex-column align-items-center justify-content-center gap-2"
+    >
+      <div class="spinner-border" role="status"></div>
+      <strong>Loading...</strong>
+    </div>
+
+    <main
+      class="container d-none py-4 d-flex flex-column gap-4 align-items-center"
+    ></main>
 
     <script src="main.js"></script>
   </body>

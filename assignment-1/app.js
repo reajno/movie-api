@@ -26,7 +26,7 @@ const getMoviesList = async (res, movieTitle) => {
 
     const data = await moviesResponse.json();
 
-// OMDB API call returns "Response" property.
+    // OMDB API call returns "Response" property.
     if (data.Response === "False") {
       // throw to catch block
       throw {
@@ -123,12 +123,12 @@ const getCombinedMovieData = async (res, id) => {
     }
     // LIMIT CALLS FOR MOVIE STREAMING
     const movieDetails = await getMovieData(id);
-    // const movieStreaming = await getStreamingData(id);
+    const movieStreaming = await getStreamingData(id);
 
     // combine API fetch call responses
     const result = {
       ...movieDetails,
-      // ...movieStreaming,
+      ...movieStreaming,
     };
 
     res.writeHead(200, {
