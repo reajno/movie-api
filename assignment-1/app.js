@@ -5,7 +5,6 @@ import { promises as fs } from "fs";
 import path from "path";
 dotenv.config();
 
-// const SWAGGER_BASE_URL = process.env.SWAGGER_API_BASE;
 const OMDB_BASE_URL = process.env.OMDB_API_BASE;
 const OMDB_KEY = process.env.OMDB_API_KEY;
 const RAPID_BASE_URL = process.env.RAPID_API_BASE;
@@ -14,7 +13,7 @@ const RAPID_KEY = process.env.RAPID_API_KEY;
 const getMoviesList = async (res, movieTitle) => {
   try {
     if (!movieTitle) {
-      // Throw error for no title
+      // throw error if no title
       throw {
         statusCode: 400,
         message: "You must supply a title!",
@@ -27,7 +26,9 @@ const getMoviesList = async (res, movieTitle) => {
 
     const data = await moviesResponse.json();
 
+// OMDB API call returns "Response" property.
     if (data.Response === "False") {
+      // throw to catch block
       throw {
         statusCode: 400,
         message: data.Error,
@@ -41,7 +42,7 @@ const getMoviesList = async (res, movieTitle) => {
       res.end();
     }
   } catch (error) {
-    // Default to 500
+    // default to error code 500
     const statusCode = error.statusCode || 500;
     res.writeHead(statusCode, {
       "Content-Type": "application/json",
@@ -83,7 +84,7 @@ const getStreamingData = async (id) => {
     // }
 
     const data = await rapidResponse.json();
-
+    // return JSON response to be combined
     return { streamingInfo: data.streamingOptions.au };
   } catch (error) {
     throw error;
@@ -104,6 +105,8 @@ const getMovieData = async (id) => {
         message: omdbData.Error,
       };
     }
+
+    // return JSON response to be combined
     return { details: omdbData };
   } catch (error) {
     throw error;
@@ -122,6 +125,7 @@ const getCombinedMovieData = async (res, id) => {
     const movieDetails = await getMovieData(id);
     // const movieStreaming = await getStreamingData(id);
 
+    // combine API fetch call responses
     const result = {
       ...movieDetails,
       // ...movieStreaming,
@@ -158,8 +162,11 @@ const getMoviePoster = async (res, id) => {
         message: "You must supply an imdbID!",
       };
     }
+    // define filename as IMDb ID.
     const filename = `${id}.png`;
+    // define path for file upload.
     const filepath = path.join(process.cwd(), "uploads", filename);
+    // read from designated file path.
     const img = await fs.readFile(filepath);
 
     res.writeHead(200, {
@@ -253,16 +260,13 @@ const addMoviePoster = async (req, res, movieID) => {
   }
 };
 
-const sendCorsHeaders = (res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-};
-
 const routing = (req, res) => {
-  // Create URL object, more workable
+  // create URL object
   const reqUrl = new URL(req.url, `http://${req.headers.host}`);
   const path = reqUrl.pathname;
   const method = req.method;
 
+  // handle preflight request
   if (method === "OPTIONS") {
     res.writeHead(204, {
       "Access-Control-Allow-Origin": "*", // Allow requests from any origin
@@ -274,19 +278,19 @@ const routing = (req, res) => {
   }
 
   if (path.startsWith("/movies/search") && method === "GET") {
+    // get searched input from request URL
     const movieTitle = path.replace("/movies/search/", "");
     getMoviesList(res, movieTitle);
   } else if (path.startsWith("/movies/data") && method === "GET") {
-    // const reqUrl = new URL(req.url, `http://${req.headers.host}`);
-    // const path = reqUrl.pathname;
+    // get imdbID from request URL
     const movieID = path.replace("/movies/data/", "");
     getCombinedMovieData(res, movieID);
   } else if (path.startsWith("/posters") && method === "GET") {
-    // const reqUrl = new URL(req.url, `http://${req.headers.host}`);
-    // const path = reqUrl.pathname;
+    // get imdbID from request URL
     const movieID = path.replace("/posters/", "");
     getMoviePoster(res, movieID);
   } else if (path.startsWith("/posters/add") && method === "POST") {
+    // get imdbID from request URL
     const movieID = path.replace("/posters/add/", "");
     addMoviePoster(req, res, movieID);
   } else {
