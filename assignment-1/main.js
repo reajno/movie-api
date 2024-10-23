@@ -90,45 +90,13 @@ const renderMovieDetails = (detailsObj) => {
       </tbody>
          </table>`;
 
-  // define table body element with movie details
-  // const movieDetailsHTML = `<tbody>
-  //       <tr>
-  //         <th>Title</th>
-  //         <td class="movie-title">${Title}</td>
-  //       </tr>
-  //       <tr>
-  //         <th>Year</th>
-  //         <td class="movie-year">${Year}</td>
-  //       </tr>
-  //       <tr>
-  //         <th>Rated</th>
-  //         <td class="movie-rated">${Rated}</td>
-  //       </tr>
-  //       <tr>
-  //         <th>Genre</th>
-  //         <td class="movie-genre">${Genre}</td>
-  //       </tr>
-  //       <tr>
-  //         <th>Director</th>
-  //         <td class="movie-director">${Director}</td>
-  //       </tr>
-  //       <tr>
-  //         <th>Actors</th>
-  //         <td class="movie-actors">${Actors}</td>
-  //       </tr>
-  //       <tr>
-  //         <th>Awards</th>
-  //         <td class="movie-actors">${Awards}</td>
-  //       </tr>
-  //       <tr>
-  //         <th>Plot</th>
-  //         <td class="movie-plot">${Plot}</td>
-  //       </tr>
-  //     </tbody>`;
+  const ratings = Ratings.map((rating) => {
+    return `
+    <h6>${rating.Source}: ${rating.Value}</h6>
+    `;
+  });
 
-  // // add table body into table element
-  // const table = document.getElementById("table");
-  // table.innerHTML = movieDetailsHTML;
+  ratingsHTML = ratings.join("");
 
   const movieRatingsHTML = `<div class="card">
         <div class="card-body d-flex flex-column gap-2">
@@ -137,9 +105,7 @@ const renderMovieDetails = (detailsObj) => {
             id="ratings"
             class="d-flex flex-wrap justify-content-center gap-4"
           >
-            <h6>IMDB: ${Ratings[0].Value}</h6>
-            <h6>Rotten Tomatoes: ${Ratings[1].Value}</h6>
-            <h6>Metacritic: ${Ratings[2].Value}</h6>
+          ${ratingsHTML}
           </div>
         </div>
       </div>`;

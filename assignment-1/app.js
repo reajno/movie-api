@@ -1,37 +1,39 @@
 import http from "http";
-import dotenv from "dotenv";
 import { promises as fs } from "fs";
-// import fs from "fs";
 import path from "path";
+import dotenv from "dotenv";
 dotenv.config();
 
-const OMDB_BASE_URL = process.env.OMDB_API_BASE;
 const OMDB_KEY = process.env.OMDB_API_KEY;
-const RAPID_BASE_URL = process.env.RAPID_API_BASE;
 const RAPID_KEY = process.env.RAPID_API_KEY;
 
 const getMoviesList = async (res, movieTitle) => {
   try {
+    // throw error if no title
     if (!movieTitle) {
-      // throw error if no title
       throw {
         statusCode: 400,
         message: "You must supply a title!",
       };
     }
 
-    const moviesResponse = await fetch(
-      `${OMDB_BASE_URL}/?apikey=${OMDB_KEY}&s=${movieTitle}`
+    const response = await fetch(
+      `http://www.omdbapi.com/?apikey=${OMDB_KEY}&s=${movieTitle}`
     );
 
-    const data = await moviesResponse.json();
+    const data = await response.json();
 
-    // OMDB API call returns "Response" property.
+    // handle invalid 200 response (E.G. API response below is status 200)
+    //   {
+    //     "details": {
+    //         "Response": "False",
+    //         "Error": "Incorrect IMDb ID."
+    //     }
+    // }
     if (data.Response === "False") {
-      // throw to catch block
       throw {
-        statusCode: 400,
-        message: data.Error,
+        statusCode: 500,
+        message: "The remote detail server returned an invalid response",
       };
     } else {
       res.writeHead(200, {
@@ -42,8 +44,7 @@ const getMoviesList = async (res, movieTitle) => {
       res.end();
     }
   } catch (error) {
-    // default to error code 500
-    const statusCode = error.statusCode || 500;
+    const statusCode = error.statusCode;
     res.writeHead(statusCode, {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
@@ -51,9 +52,7 @@ const getMoviesList = async (res, movieTitle) => {
     res.write(
       JSON.stringify({
         error: true,
-        message:
-          error.message ||
-          "The remote detail server returned an invalid response",
+        message: error.message,
       })
     );
     res.end();
@@ -62,17 +61,22 @@ const getMoviesList = async (res, movieTitle) => {
 
 const getStreamingData = async (id) => {
   try {
-    const response = await fetch(`${RAPID_BASE_URL}/${id}`, {
-      headers: {
-        "X-RapidAPI-Key": RAPID_KEY,
-      },
-    });
+    const response = await fetch(
+      `https://streaming-availability.p.rapidapi.com/shows/${id}`,
+      {
+        headers: {
+          "X-RapidAPI-Key": RAPID_KEY,
+        },
+      }
+    );
 
+    // throw all error response codes to catch block (status 500)
     if (!response.ok) {
       throw new Error();
     }
 
     const data = await response.json();
+
     // return JSON response to be combined
     return { streamingInfo: data.streamingOptions.au };
   } catch (error) {
@@ -86,16 +90,17 @@ const getStreamingData = async (id) => {
 const getMovieData = async (id) => {
   try {
     const response = await fetch(
-      `${OMDB_BASE_URL}/?apikey=${OMDB_KEY}&i=${id}`
+      `http://www.omdbapi.com/?apikey=${OMDB_KEY}&i=${id}`
     );
 
+    // throw all error response codes to catch block (status 500)
     if (!response.ok) {
       throw new Error();
     }
 
     const data = await response.json();
 
-    // Handle invalid 200 response (E.G. API response below is status 200)
+    // handle invalid 200 response (E.G. API response below is status 200)
     //   {
     //     "details": {
     //         "Response": "False",
@@ -105,7 +110,6 @@ const getMovieData = async (id) => {
     if (data.Response === "False") {
       throw new Error();
     }
-
     // return JSON response to be combined
     return { details: data };
   } catch (error) {
@@ -118,14 +122,15 @@ const getMovieData = async (id) => {
 
 const getCombinedMovieData = async (res, id) => {
   try {
-    // Status 400 error is handled here
+    // status 400 error is handled here
+    // throw error if no id
     if (!id) {
       throw {
         statusCode: 400,
         message: "You must supply an imdbID!",
       };
     }
-    // LIMIT CALLS FOR MOVIE STREAMING
+
     const movieDetails = await getMovieData(id);
     const movieStreaming = await getStreamingData(id);
 
@@ -159,17 +164,21 @@ const getCombinedMovieData = async (res, id) => {
 
 const getMoviePoster = async (res, id) => {
   try {
+    // throw error if no id
     if (!id) {
       throw {
         statusCode: 400,
         message: "You must supply an imdbID!",
       };
     }
-    // define filename as IMDb ID.
+
+    // define filename as IMDb ID
     const filename = `${id}.png`;
-    // define path for file upload.
+
+    // define file path to check
     const filepath = path.join(process.cwd(), "uploads", filename);
-    // read from designated file path.
+
+    // read from designated file path
     const img = await fs.readFile(filepath);
 
     res.writeHead(200, {
@@ -186,8 +195,7 @@ const getMoviePoster = async (res, id) => {
     res.write(
       JSON.stringify({
         error: true,
-        message:
-          error.message || "The remote server returned an invalid response",
+        message: error.message,
       })
     );
     res.end();
@@ -196,13 +204,17 @@ const getMoviePoster = async (res, id) => {
 
 const addMoviePoster = async (req, res, movieID) => {
   try {
+    // throw error if no id
     if (!movieID) {
       throw {
         message: "You must supply an imdbID!",
       };
     }
 
+    // define content type from request header
     const contentType = req.headers["content-type"];
+
+    // throw error if file type is not .png
     if (contentType !== "image/png") {
       throw {
         message: "A filetype other than png has been provided.",
@@ -211,15 +223,24 @@ const addMoviePoster = async (req, res, movieID) => {
 
     let body = [];
 
+    // collect transmitted chunk data
     req.on("data", (chunk) => {
       body.push(chunk);
     });
 
+    // process data once fully received
     req.on("end", async () => {
       try {
+        // create buffer from received data
         const buffer = Buffer.concat(body);
+
+        // define new name for uploaded file to be saved
         const filename = `${movieID}.png`;
+
+        // define path for file upload
         const savePath = path.join(process.cwd(), "uploads", filename);
+
+        // save file to path
         await fs.writeFile(savePath, buffer);
 
         res.writeHead(200, {
@@ -233,23 +254,21 @@ const addMoviePoster = async (req, res, movieID) => {
           })
         );
       } catch (error) {
-        const statusCode = error.statusCode;
-        res.writeHead(statusCode, {
+        res.writeHead(400, {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",
         });
         res.write(
           JSON.stringify({
             error: true,
-            message:
-              error.message || "The remote server returned an invalid response",
+            message: error.message,
           })
         );
         res.end();
       }
     });
   } catch (error) {
-    // Both errors are status 400
+    // all error status codes predetermined as 400
     res.writeHead(400, {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
@@ -272,9 +291,9 @@ const routing = (req, res) => {
   // handle preflight request
   if (method === "OPTIONS") {
     res.writeHead(204, {
-      "Access-Control-Allow-Origin": "*", // Allow requests from any origin
-      "Access-Control-Allow-Methods": "POST", // Allowed methods
-      "Access-Control-Allow-Headers": "Content-Type", // Allowed headers
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST",
+      "Access-Control-Allow-Headers": "Content-Type",
     });
     res.end();
     return;
@@ -302,6 +321,6 @@ const routing = (req, res) => {
   }
 };
 
-http.createServer(routing).listen(3000, () => {
-  console.log("Server start at port 3000");
+http.createServer(routing).listen(5000, () => {
+  console.log("Server start at port 5000");
 });
