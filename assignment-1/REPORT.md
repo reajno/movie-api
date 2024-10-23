@@ -1,75 +1,73 @@
-## IFQ716 - REPORT
+# IFQ716 REPORT
 
 ## Introduction
 
 All endpoints are implemented
 Show screenshots:
 
+In this assignment, I've developed a REST API using Node.js (**REFERENCE**) which provides client-side web applications transformed movie and streaming data obtained from multiple sources. The documented endpoints for this task were all implemented in the API. A simple client app is also created to demonstrate the functionality of the API.
 
-In thi assignment, I've created a fullstack web app which demonstrates the creation of RESTful API as outlined for this task. External packages such as dotenv and http-server were used to demonstrate the API usage within a local environment. All endpoints are implemented and are usable in the client app.
+
+created a fullstack web app which demonstrates the creation of RESTful API as outlined for this task. External packages such as dotenv and http-server were used to demonstrate the API usage within a local environment. All endpoints are implemented and are usable in the client app.
 
 ## Technical description
 
-Using the http module from Node.js, I created a REST API which answers all endpoints as prescribed by the task. A custom callback function called "routing" is used to conditionally process the necessary routes and methods for each path in the API. In each path, custom asynchronous functions are called in order to fetch the requested API data.
+Using the Node.js "http" module, A custom "routing" function is used to handle different routes HTTP methods for each valid path in the API. In each path, asynchronous functions are called to fetch the requested API data. Instead of using manual string splitting methods to parse the URL, a URL object is created, which is inline with modern standards and provides a robust way to access relevant information. Key details such as the movie title and the movie IMDb ID are extracted from the URL object and passed to the corresponding functions need them to make the necessary API calls. 
 
-Instead of using string splitting methods, a URL object containing necessary information is created for ease of use. Information such as the movie title and the movie IMDb ID is retrieved from the URL object, to be used by the respective functions in order to make the API call.
+(img1)
 
-To create my restful API, external services, OMDb (**REFERENCE**)and Rapid (**REFERENCE**) were used. These established APIs have their own specific configurations for data fetching and error handling and they are transformed to a usable format for the purposes of my API. As an example, OMDb takes the API key via URL, and Rapid access it from custom header.
+OMDb API and Streaming Availability API are used to obtain movie data and streaming availability, respectively. These third-party APIs have their own specific configuration for data fetching and error handling, which are transformed to align with the prescribed format for the custom API. For example, OMDb passes the API key via the URL, whereas the API key for Streaming Availability is passed via the custom header "X-RapidAPI-Key". It was essential to understand the API documentation in order to correctly handle fetch calls and manage their responses. 
 
-- *External APIs, OMDb and Rapid were used*
-- *These 3P APIs have a pre-set response and are processed accordingly to a usable format for the purposes of my API.*
-- *The 3P APIs have different procedures for data fetching and error handling.* 
-- *E.g. OMDB takes API key via URL, Rapid reads it from the custom header "X-RapidAPI-Key".*
-- Reading the API docs were crucial to understand how to use them and manipulate fetch calls accordingly
-- Error handling was done using try catch blocks which can be modular in the way errors can be handled.
+(img2 + img3)
 
-- function "getCombinedMovieData" is used to combine results of separate fetch calls
-- Done to simplify the data presentation and usage
-
-Third party module, dotenv, is also used to store private api keys for the production of the app. Node path module is used to identify paths in relation to saving image data for the /posters endpoint.
-
------------------ 
-- 6 main API async functions created
-	- getMoviesList
-	- getMovieData
-	- getStreamingData
-	- getCombinedData
-
-### /movies
-- getMoviesList, getMovieData, and getStreamingData are async functions that fetch the necessary movie information required.
-- getMoviesList is a direct call and returns a JSON data response that is sent directly to the client.
-- getMovieData and getStreaming data however, return JSON objects.
-	- Their results are merged using 'getCombinedMovieData' function.
-		After merge, this function sends the server response to the client.
+Third-party module, dotenv (**REFERENCE**), is used to store and manage the private API keys of the  mentioned external APIs integrated into the app. Additionally, Bootstrap is utilised on the client side to assist with the styling and layout of DOM elements to demonstrate the app's functionalities.
 
 -----------------
 
+In my API, six main asynchronous functions were created handle web client fetch requests as outlined by the task:
+    - getMoviesList
+    - getMovieData
+    - getStreamingData
+    - getCombinedMovieData
+    - getMoviePoster
+    - addMoviePoster
+
+These functions are called within the routing handler function and they all take the response object and the movie title or movie IMDb ID as parameters to be used within them. Responses and error handling are also processed independently within these functions to allow for improved readability and separation of concerns. 
+
+The modern "async/await" JavaScript syntax was used throughout the API, with error handling being implemented using "try-catch blocks" for enhanced code readability and modular error management. I preferred this approach over using callbacks for its flexible error handling, even with unexpected edge case errors which could occur from the external resources used.
+
+### /movies/search
+
+In this endpoint, the asynchronous function "getMoviesList" fetches data from OMDb API and returns the JSON data as a response. Using the OMDb API, I discovered that all fetch requests include a "Response" property with a boolean value. A challenge I encountered was that even erroneous requests return a Status 200, with the "Response" property's value as "false". This meant that even though the returned data indicates that an error occured, the server still processes the response as "successful" because a value was successfully returned from the fetch call. I overcame this issue by conditionally throwing an error if the "Response" value was false. Additionally, by encasing the fetch processes within a try-catch block, any caught errors could be easily propagated upwards and returned to the client to ensure proper error handling and feedback. 
+
+(img4)
+
+### /movies/data
+For this endpoint, the getMovieData and getStreamingData functions handle the fetch calls to the OMDb API and Streaming Availability API, respectively. In alignment with the prescribed API responses, a server error (status 500) is thrown within each function if an error occurs during the fetch process. If the fetch calls are successful, they return JSON objects which are then further processed within the "getCombinedMovieData" function. 
+
+In "getCombinedMovieData", the returned objects from the fetch calls are combined into a single JSON object. This approach simplifies the presentation of the data to suit the purposes of the custom API. The function directly handles status 400 errors, while any status 500 errors within the individual functions are propagated upwards and returned in the response. 
+
+Initially, I anticipated that handling errors across multiple external data sources for this endpoint would be complex. However, by separating the fetch calls into their own functions and centralising the logic in a parent function to process their results, I was able to streamline error handling operations. This approach not only simplified the process but also made it easier to manage errors consistently across different sources, ensuring maintainability and scalability of the custom API.
+
+----------------
 ### /posters
-- getMoviePoster and addMoviePoster
-- getMoviePoster
-	- uses Node path and filesystem readFile module to access the local directory and obtain the necessary files. 
-	- A movie's imdbID is used as the filename to be read and returned as a response from the server.
-	- If no files match the queried ID, error is returned.
+For this endpoint, the "getMoviePoster" function is used to retrieve an image file with a matching IMDb ID passed to the function. Node's "path" and "fs" modules are utilised within the function to access the "uploads" folder within the local directory and retrieve the corresponding image file. Once the file is found, it is read and sent to the client as a response. 
+
+(image of 200)
+
+If no file matches the queried IMDb ID, an error is returned to indicate that the poster could not be found. This ensures that only valid posters are retrieved based on the movie's unique ID.
+
+(image of 400)
+
+For the purposes of this assignment, the `getMoviePoster` function only searches the "uploads" folder in the working directory to find the requested image file. However, if the application were to be released to production, this approach could be modified to query an external database or a dedicated cloud storage service for the poster files. This would improve the application scalability and is better suited for handling large datasets or multiple users accessing the data simultaneously.
 ### /posters/add
-- addMoviePoster
-	- The client sends an OPTIONS method first to check that the server will allow a POST method.
-	- Because this endpoint is a POST method, preflight headers are sent as a response to the client to ensure that this is a valid action to perform.
-	- Once preflight headers are received, the function is then called to process the uploaded image file.
-	- The image data is received in chunks and gets processed as a buffer by the server. 
-	- When fully received and combined as buffer, it is written into the '/uploads' directory of the project with the movie's IMDb ID as the file name.
-- Challenges
-	- In the development environment, I used VS code live server extension due to its fast auto-reloading capability. However when testing the POST request function, it I encountered an issue where the client would reload itself and lose the rendered data from the previous session prior to the POST request. 
-	- The API works, (e.g. image is uploaded to directory correctly) however, the response is lost upon the refresh.
-	- I identified that this issue was being triggered by live server directly, due to the new file being uploaded to the local directory. Live server is set up to automatically scan changes within the app's environment. 
-	- Fixed issue by using node http-server, which doesn't support auto-reload and mimics the way a production ready app would.
-	- In this instance
-## References 
 
-## Appendix (installation guide)
+The "addMoviePoster" function handles image uploads from the client. Due to the specified endpoint request being a POST method, an OPTIONS preflight request is first sent by the browser to verify if the server allows the POST request. The server then responds with preflight headers to confirm that the action can be performed. Once these headers are received by the client, the image upload is initiated. The image data is transmitted in binary chunks, which the server processes and combines into a readable buffer. Once the entire data is received, the buffer is then written into the "uploads" folder found within the working directory where the project is initiated. In this folder, the uploaded image is renamed to the movie's unique IMDb ID.
 
-Install following from NPM
-- dotenv
-- http-server
-In CLI:
-npm run server
-npm run client
+(image of 200)
+
+Errors for this endpoint are handled both before the image data is processed and after the image data is fully received. This is done to ensure any errors throughout the process are caught and managed gracefully. While the errors currently default to a status 400 response code, the function can be easily modified to provide more specific information about the error if required. 
+
+(image of 400)
+
+During development testing in a browser client, I used the VS Code "Live Server" extension for its fast auto-reloading feature. However, when testing the POST request function, I encountered an issue where the client would automatically reload and lose the rendered data from the previous session before the POST request completed. Although the API itself worked as expected (E.G. the image is uploaded to the directory correctly), the response was lost due to the page refresh. I identified that "Live Server" was causing this issue due to the extension constantly scanning the directory and its files for any changes. Thus, the newly uploaded file in the local directory would trigger a page refresh. To fix this, I switched to using Node's "http-server", which doesn't support auto-reloading. This allows the app to behave as what would be expected in a production environment, without unexpected page refreshes.
