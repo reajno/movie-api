@@ -192,7 +192,7 @@ const getSearchResults = async (e) => {
     let res = await fetch(
       // Send fetch request to API URL
       // with input value as search params in the URL.
-      `http://localhost:3000/movies/search/${movieInput.value}`
+      `http://localhost:5000/movies/search/${movieInput.value}`
     );
 
     if (!res.ok) {
@@ -215,7 +215,7 @@ const getMovieDetails = async (e) => {
   handleLoadingState(isLoading);
   const imdbID = e.target.parentNode.dataset.imdbid;
   try {
-    let res = await fetch(`http://localhost:3000/movies/data/${imdbID}`);
+    let res = await fetch(`http://localhost:5000/movies/data/${imdbID}`);
     if (!res.ok) {
       const errorData = await res.json();
       throw errorData;
@@ -237,21 +237,18 @@ const getPoster = async (e, imdbID) => {
   e.preventDefault();
 
   const moviePoster = document.getElementById("moviePoster");
-  if (moviePoster.getAttribute("src") !== "") {
-    moviePoster.classList.toggle("d-none");
-  } else {
-    try {
-      let res = await fetch(`http://localhost:3000/posters/${imdbID}`);
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw errorData;
-      }
-      const imgSrc = res.url;
-      moviePoster.src = imgSrc;
-      moviePoster.classList.toggle("d-none");
-    } catch (error) {
-      alert(error.message);
+
+  try {
+    let res = await fetch(`http://localhost:5000/posters/${imdbID}`);
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw errorData;
     }
+    let imgSrc = res.url;
+    moviePoster.src = imgSrc;
+    moviePoster.classList.toggle("d-none");
+  } catch (error) {
+    alert(error.message);
   }
 };
 
@@ -265,7 +262,7 @@ const addPoster = async (e, imdbID) => {
     alert("Please select a file to upload");
   } else {
     try {
-      let res = await fetch(`http://localhost:3000/posters/add/${imdbID}`, {
+      let res = await fetch(`http://localhost:5000/posters/add/${imdbID}`, {
         method: "POST",
         body: image,
       });

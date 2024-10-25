@@ -4,8 +4,12 @@ import path from "path";
 import dotenv from "dotenv";
 dotenv.config();
 
+// must be available in .env file
 const OMDB_KEY = process.env.OMDB_API_KEY;
 const RAPID_KEY = process.env.RAPID_API_KEY;
+
+// default client origin set from cli command (npm run client)
+const allowedOrigin = "http://localhost:3000";
 
 const getMoviesList = async (res, movieTitle) => {
   try {
@@ -38,7 +42,7 @@ const getMoviesList = async (res, movieTitle) => {
     } else {
       res.writeHead(200, {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": allowedOrigin,
       });
       res.write(JSON.stringify(data));
       res.end();
@@ -47,7 +51,7 @@ const getMoviesList = async (res, movieTitle) => {
     const statusCode = error.statusCode;
     res.writeHead(statusCode, {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": allowedOrigin,
     });
     res.write(
       JSON.stringify({
@@ -142,7 +146,7 @@ const getCombinedMovieData = async (res, id) => {
 
     res.writeHead(200, {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": allowedOrigin,
     });
     res.write(JSON.stringify(result));
     res.end();
@@ -150,7 +154,7 @@ const getCombinedMovieData = async (res, id) => {
     const statusCode = error.statusCode;
     res.writeHead(statusCode, {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": allowedOrigin,
     });
     res.write(
       JSON.stringify({
@@ -183,14 +187,14 @@ const getMoviePoster = async (res, id) => {
 
     res.writeHead(200, {
       "Content-Type": "image/png",
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": allowedOrigin,
     });
     res.end(img);
   } catch (error) {
     const statusCode = error.code === "ENOENT" ? 500 : error.statusCode;
     res.writeHead(statusCode, {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": allowedOrigin,
     });
     res.write(
       JSON.stringify({
@@ -244,7 +248,7 @@ const addMoviePoster = async (req, res, movieID) => {
         await fs.writeFile(savePath, buffer);
 
         res.writeHead(200, {
-          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Origin": allowedOrigin,
           "Content-Type": "application/json",
         });
         res.end(
@@ -256,7 +260,7 @@ const addMoviePoster = async (req, res, movieID) => {
       } catch (error) {
         res.writeHead(400, {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Origin": allowedOrigin,
         });
         res.write(
           JSON.stringify({
@@ -271,7 +275,7 @@ const addMoviePoster = async (req, res, movieID) => {
     // all error status codes predetermined as 400
     res.writeHead(400, {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": allowedOrigin,
     });
     res.end(
       JSON.stringify({
@@ -288,16 +292,10 @@ const routing = (req, res) => {
   const path = reqUrl.pathname;
   const method = req.method;
 
-  // handle preflight request
-  if (method === "OPTIONS") {
-    res.writeHead(204, {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST",
-      "Access-Control-Allow-Headers": "Content-Type",
-    });
-    res.end();
-    return;
-  }
+  // set headers
+  res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (path.startsWith("/movies/search") && method === "GET") {
     // get searched input from request URL
