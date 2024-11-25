@@ -29,6 +29,8 @@ app.use(function (req, res, next) {
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
+app.use("/movies", require("./routes/movies"));
+app.use("/posters", require("./routes/posters"));
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
