@@ -7,12 +7,24 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 router.get("/:imdbID", async (req, res, next) => {
   try {
-    const imdbID = req.params.imdbID;
+    const { imdbID } = req.params;
 
-    const posters = await req.body
-      .from("user_images")
-      .select("*")
-      .where("tconst", imdbID);
+    const poster = await req.db
+      .from("images")
+      .where("tconst", imdbID)
+      .limit(1)
+      .then((rows) => {
+        if (rows.length === 0) {
+          throw {
+            statusCode: 404,
+            message: "Image not found",
+          };
+        }
+        const imageBuffer = rows[0].image;
+        return imageBuffer;
+      });
+    res.set("Content-Type", "image/png");
+    res.send(poster);
 
     // Use auth to determine user's id from 'users' database
     // .where('email' from 'users' matches 'userID' in 'user_images')
@@ -22,19 +34,56 @@ router.get("/:imdbID", async (req, res, next) => {
 });
 
 router.post("/add/:imdbID", upload.single("image"), async (req, res, next) => {
+  const { imdbID } = req.params;
+  console.log(req.params);
+  const { buffer, mimetype } = req.file;
+
   try {
-    const { imdbID } = req.params;
-    console.log(req.file);
+    if (!imdbID) {
+      throw {
+        message: "You must supply an imdbID!",
+      };
+    }
 
-    await req.db("images").insert({
-      tconst: imdbID,
-      image: req.file.buffer,
+    if (req.params.length > 1) {
+      throw {
+        message: "Invalid query parameters. Query parameters are not permitted",
+      };
+    }
+
+    if (mimetype !== "image/png") {
+      throw {
+        message: "Image must be a PNG file",
+      };
+    }
+
+    await req
+      .db("images")
+      .insert({
+        tconst: imdbID,
+        image: buffer,
+      })
+      .catch((error) => {
+        if (error.code === "ER_DUP_ENTRY") {
+          throw {
+            statusCode: 500,
+            message: "Duplicate Entry. Poster already exists.",
+          };
+        } else {
+          throw {
+            statusCode: 500,
+            message: "Database operation failed",
+          };
+        }
+      });
+
+    res.status(200).json({
+      error: false,
+      message: "Poster Uploaded Successfully",
     });
-
-    res.json({ message: `${imdbID}: Image uploaded successfully!` });
   } catch (error) {
-    console.log(console.error(error));
-    res.status(400).json({ message: "error from post request" });
+    const statusCode = error.statusCode ? error.statusCode : 400;
+    res.status(statusCode).json({ error: true, message: error.message });
   }
 });
 
