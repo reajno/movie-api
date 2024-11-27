@@ -1,28 +1,28 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
-const fs = require("fs");
+const authorization = require("../middleware/authorization");
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-router.get("/:imdbID", async (req, res, next) => {
+router.get("/:imdbID", authorization, async (req, res, next) => {
   try {
     const { imdbID } = req.params;
 
-    const poster = await req.db
+    const queryPoster = await req.db
       .from("images")
       .where("tconst", imdbID)
-      .limit(1)
-      .then((rows) => {
-        if (rows.length === 0) {
-          throw {
-            statusCode: 404,
-            message: "Image not found",
-          };
-        }
-        const imageBuffer = rows[0].image;
-        return imageBuffer;
-      });
+      .limit(1);
+
+    if (queryPoster.length === 0) {
+      throw {
+        statusCode: 404,
+        message: "Image not found",
+      };
+    }
+
+    const poster = queryPoster[0].image;
+
     res.set("Content-Type", "image/png");
     res.send(poster);
 
@@ -57,8 +57,8 @@ router.post("/add/:imdbID", upload.single("image"), async (req, res, next) => {
       };
     }
 
-    await req
-      .db("images")
+    await req.db
+      .from("images")
       .insert({
         tconst: imdbID,
         image: buffer,
