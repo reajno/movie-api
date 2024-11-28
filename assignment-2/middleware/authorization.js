@@ -2,7 +2,6 @@ const jwt = require("jsonwebtoken");
 
 module.exports = async (req, res, next) => {
   const authHeader = req.headers.authorization;
-  console.log(authHeader);
 
   try {
     if (!authHeader || !authHeader.match(/^Bearer /)) {
@@ -13,11 +12,9 @@ module.exports = async (req, res, next) => {
     }
 
     const token = authHeader.split(" ")[1];
-    console.log(token);
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      console.log(decoded);
       req.user = decoded;
     } catch (error) {
       if (error.name === "TokenExpiredError") {
