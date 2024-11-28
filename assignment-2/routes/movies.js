@@ -28,7 +28,7 @@ router.get(
         };
       }
 
-      const paginationQuery = async (req) => {
+      const paginationQuery = async (req, title, year, currentPage) => {
         const countTotal = await req.db
           .from("basics")
           .where("primaryTitle", "like", `%${title}%`)
@@ -59,7 +59,7 @@ router.get(
         return result;
       };
 
-      const moviesQuery = async (req) => {
+      const moviesQuery = async (req, title, year, offset) => {
         const movies = await req.db
           .from("basics")
           .select("*")
@@ -143,8 +143,13 @@ router.get(
       //     };
       //   });
 
-      const moviesResult = await moviesQuery(req);
-      const paginationResult = await paginationQuery(req);
+      const moviesResult = await moviesQuery(req, title, year, offset);
+      const paginationResult = await paginationQuery(
+        req,
+        title,
+        year,
+        currentPage
+      );
 
       res.json({
         data: moviesResult,
@@ -172,7 +177,7 @@ router.get(
         };
       }
 
-      const movieInfoQuery = async (req) => {
+      const movieInfoQuery = async (imdbID, req) => {
         const movieInfo = await req.db
           .from("basics")
           .select("*")
@@ -189,75 +194,71 @@ router.get(
         const result = {
           Title: movie.primaryTitle,
           Year: movie.startYear,
-          Runtime: movie.runtimeMinutes,
+          Runtime: `${movie.runtimeMinutes} min`,
           Genre: movie.genres,
         };
 
         return result;
       };
 
-      // .then((rows) => {
-      //   const movie = rows[0];
-      //   return {
-      //     Title: movie.primaryTitle,
-      //     Year: movie.startYear,
-      //     Runtime: movie.runtimeMinutes,
-      //     Genre: movie.genres,
-      //   };
-      // });
+      const movieCrewQuery = async (imdbID, req) => {
+        const movieCrew = await req.db
+          .from("principals")
+          .where("tconst", imdbID)
+          .whereIn("category", ["writer", "director", "actor", "actress"])
+          .innerJoin("names", "principals.nconst", "=", "names.nconst");
 
-      const movieInfoResult = movieInfoQuery(req);
+        const result = movieCrew.reduce(
+          (crewObject, person) => {
+            const { category, primaryName } = person;
 
-      const movieCrew = await req.db
-        .from("principals")
-        .where("tconst", imdbID)
-        .whereIn("category", ["writer", "director", "actor", "actress"])
-        .innerJoin("names", "principals.nconst", "=", "names.nconst")
-        .then((rows) => {
-          const transformedCrew = rows.reduce(
-            (result, row) => {
-              const { category, primaryName } = row;
+            if (category === "director") {
+              crewObject.Director = crewObject.Director
+                ? `${crewObject.Director}, ${primaryName}`
+                : primaryName;
+            } else if (category === "writer") {
+              crewObject.Writer = crewObject.Writer
+                ? `${crewObject.Writer}, ${primaryName}`
+                : primaryName;
+            } else if (category === "actor" || category === "actress") {
+              crewObject.Actors = crewObject.Actors
+                ? `${crewObject.Actors}, ${primaryName}`
+                : primaryName;
+            }
 
-              if (category === "director") {
-                result.Director = result.Director
-                  ? `${result.Director}, ${primaryName}`
-                  : primaryName;
-              } else if (category === "writer") {
-                result.Writer = result.Writer
-                  ? `${result.Writer}, ${primaryName}`
-                  : primaryName;
-              } else if (category === "actor" || category === "actress") {
-                result.Actors = result.Actors
-                  ? `${result.Actors}, ${primaryName}`
-                  : primaryName;
-              }
+            return crewObject;
+          },
+          { Director: null, Writer: null, Actors: null }
+        );
 
-              return result;
+        return result;
+      };
+
+      const movieRatingQuery = async (imdbID, req) => {
+        const movieRating = await req.db
+          .from("ratings")
+          .select("*")
+          .where("tconst", imdbID);
+
+        const rating = movieRating[0].averageRating;
+
+        return {
+          Ratings: [
+            {
+              Source: "Internet Movie Database",
+              Value: `${rating}/10`,
             },
-            { Director: null, Writer: null, Actors: null }
-          );
+          ],
+        };
+      };
 
-          return transformedCrew;
-        });
+      const movieInfoResult = await movieInfoQuery(imdbID, req);
+      const movieCrewResult = await movieCrewQuery(imdbID, req);
+      const movieRatingResult = await movieRatingQuery(imdbID, req);
 
-      const movieRating = await req.db
-        .from("ratings")
-        .select("*")
-        .where("tconst", imdbID)
-        .then((rows) => {
-          const rating = rows[0].averageRating;
-
-          return {
-            Ratings: [
-              {
-                Source: "Internet Movie Database",
-                Value: `${rating}/10`,
-              },
-            ],
-          };
-        });
-
-      const data = [{ ...movieInfoResult, ...movieCrew, ...movieRating }];
+      const data = [
+        { ...movieInfoResult, ...movieCrewResult, ...movieRatingResult },
+      ];
 
       res.json(data);
     } catch (error) {
