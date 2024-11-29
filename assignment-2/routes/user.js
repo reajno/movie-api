@@ -3,6 +3,11 @@ const router = express.Router();
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const throwError = require("../functions/utils/throwError");
+const userQuery = require("../functions/query/userQuery.js")
+
+
+
 
 /* GET users listing. */
 router.get("/", function (req, res, next) {
@@ -13,25 +18,19 @@ router.post("/register", async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
-    console.log(req.body);
     if (!email || !password) {
-      throw {
-        statusCode: 400,
-        message:
-          "Request body incomplete, both email and password are required",
-      };
+      throwError(
+        400,
+        "Request body incomplete, both email and password are required"
+      );
     }
 
-    const existingUsers = await req.db
-      .from("users")
-      .select("*")
-      .where("email", email);
 
-    if (existingUsers.length > 0) {
-      throw {
-        statusCode: 409,
-        message: "User already exists",
-      };
+    const userResult = await userQuery(req, email);
+
+    // If user exists
+    if (userResult.length > 0) {
+      throwError(409, "User already exists");
     }
 
     const saltRounds = 10;
@@ -48,41 +47,37 @@ router.post("/register", async (req, res, next) => {
 router.post("/login", async (req, res, next) => {
   const { email, password } = req.body;
   try {
-    console.log(req.body);
     if (!email || !password) {
-      throw {
-        statusCode: 400,
-        message:
-          "Request body incomplete, both email and password are required",
-      };
+      throwError(
+        400,
+        "Request body incomplete, both email and password are required"
+      );
     }
 
-    const queryUsers = await req.db
-      .from("users")
-      .select("*")
-      .where("email", email);
+    // Find user email from DB
+    const userResult = await userQuery(req, email);
 
-    if (queryUsers.length === 0) {
-      throw {
-        statusCode: 400,
-        message: "Unknown email, please register your account",
-      };
+    if (userResult.length === 0) {
+      throwError(400, "Unknown email, please register your account");
     }
 
-    const user = queryUsers[0];
+    // Define valid user
+    const user = userResult[0];
+
+    // Match password input with user hash stored in DB
     const passwordMatch = await bcrypt.compare(password, user.hash);
 
     if (!passwordMatch) {
-      throw {
-        statusCode: 401,
-        message: "Incorrect password",
-      };
+      throwError(401, "Incorrect password");
     }
 
-    const expires_in = 60 * 60; // 1 hour
+    const expires_in = 60 * 60 * 24; // 24 hours
     const exp = Math.floor(Date.now() / 1000) + expires_in;
+
+    // Define token
     const token = jwt.sign({ email, exp }, process.env.JWT_SECRET);
 
+    // Set Auth token header
     res.setHeader("Authorization", `Bearer ${token}`);
     res.status(200).json({
       token,
@@ -90,7 +85,7 @@ router.post("/login", async (req, res, next) => {
       expires_in,
     });
   } catch (error) {
-    const statusCode = error.statusCode ? error.statusCode : 400;
+    const statusCode = error.statusCode || 400;
     res.status(statusCode).json({ error: true, message: error.message });
   }
 });

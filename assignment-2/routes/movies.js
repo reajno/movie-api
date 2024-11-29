@@ -1,10 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const validateParams = require("../middleware/validateParams");
+const validateQuery = require("../middleware/validateQuery");
+const paginationQuery = require("../functions/query/paginationQuery");
+const movieSearchQuery = require("../functions/query/movieSearchQuery");
 
 router.get(
   "/search",
-  validateParams(["title", "year", "page"]),
+  validateQuery(["title", "year", "page"]),
   async (req, res, next) => {
     try {
       const { title, year, page } = req.query;
@@ -28,61 +30,30 @@ router.get(
         };
       }
 
-      const paginationQuery = async (req, title, year, currentPage) => {
-        const countTotal = await req.db
-          .from("basics")
-          .where("primaryTitle", "like", `%${title}%`)
-          .modify((initQuery) => {
-            if (year) initQuery.andWhere("startYear", year);
-          })
-          .count("* as total");
+      // const moviesQuery = async (req, title, year, offset) => {
+      //   const movies = await req.db
+      //     .from("basics")
+      //     .select("*")
+      //     .where("primaryTitle", "like", `%${title}%`)
+      //     .modify((query) => {
+      //       if (year) query.andWhere("startYear", year);
+      //     })
+      //     .limit(perPage)
+      //     .modify((query) => {
+      //       if (page) query.offset(offset);
+      //     });
 
-        const total = countTotal[0].total;
-        const lastPage = Math.ceil(total / perPage);
+      //   const result = movies.map((movie) => {
+      //     return {
+      //       Title: movie.primaryTitle,
+      //       Year: movie.startYear,
+      //       imdbID: movie.tconst,
+      //       Type: movie.titleType,
+      //     };
+      //   });
 
-        const result = {
-          pagination: {
-            total: total,
-            lastPage: lastPage,
-            perPage: perPage,
-            currentPage: currentPage,
-            from: (currentPage - 1) * perPage,
-            to: currentPage * perPage > total ? total : currentPage * perPage,
-          },
-        };
-
-        if (currentPage > 1) {
-          delete result.pagination.total;
-          delete result.pagination.lastPage;
-        }
-
-        return result;
-      };
-
-      const moviesQuery = async (req, title, year, offset) => {
-        const movies = await req.db
-          .from("basics")
-          .select("*")
-          .where("primaryTitle", "like", `%${title}%`)
-          .modify((query) => {
-            if (year) query.andWhere("startYear", year);
-          })
-          .limit(perPage)
-          .modify((query) => {
-            if (page) query.offset(offset);
-          });
-
-        const result = movies.map((movie) => {
-          return {
-            Title: movie.primaryTitle,
-            Year: movie.startYear,
-            imdbID: movie.tconst,
-            Type: movie.titleType,
-          };
-        });
-
-        return result;
-      };
+      //   return result;
+      // };
 
       // const paginationQuery = await req.db
       //   .from("basics")
@@ -143,12 +114,20 @@ router.get(
       //     };
       //   });
 
-      const moviesResult = await moviesQuery(req, title, year, offset);
+      const moviesResult = await movieSearchQuery(
+        req,
+        title,
+        year,
+        page,
+        perPage,
+        offset
+      );
       const paginationResult = await paginationQuery(
         req,
         title,
         year,
-        currentPage
+        currentPage,
+        perPage
       );
 
       res.json({
@@ -162,109 +141,105 @@ router.get(
   }
 );
 
-router.get(
-  "/data/:imdbID",
-  validateParams(["imdbID"]),
-  async (req, res, next) => {
-    try {
-      const { imdbID } = req.params;
+router.get("/data/:imdbID", validateQuery(), async (req, res, next) => {
+  try {
+    const { imdbID } = req.params;
 
-      // Check if title exists
-      if (!imdbID) {
+    // Check if title exists
+    if (!imdbID) {
+      throw {
+        statusCode: 400,
+        message: "An imdbID parameter is required",
+      };
+    }
+
+    const movieInfoQuery = async (imdbID, req) => {
+      const movieInfo = await req.db
+        .from("basics")
+        .select("*")
+        .where("tconst", imdbID);
+
+      if (movieInfo.length === 0) {
         throw {
           statusCode: 400,
-          message: "An imdbID parameter is required",
+          message: "imdbID not found in the database",
         };
       }
 
-      const movieInfoQuery = async (imdbID, req) => {
-        const movieInfo = await req.db
-          .from("basics")
-          .select("*")
-          .where("tconst", imdbID);
-
-        if (movieInfo.length === 0) {
-          throw {
-            statusCode: 400,
-            message: "imdbID not found in the database",
-          };
-        }
-
-        const movie = movieInfo[0];
-        const result = {
-          Title: movie.primaryTitle,
-          Year: movie.startYear,
-          Runtime: `${movie.runtimeMinutes} min`,
-          Genre: movie.genres,
-        };
-
-        return result;
+      const movie = movieInfo[0];
+      const result = {
+        Title: movie.primaryTitle,
+        Year: movie.startYear,
+        Runtime: `${movie.runtimeMinutes} min`,
+        Genre: movie.genres,
       };
 
-      const movieCrewQuery = async (imdbID, req) => {
-        const movieCrew = await req.db
-          .from("principals")
-          .where("tconst", imdbID)
-          .whereIn("category", ["writer", "director", "actor", "actress"])
-          .innerJoin("names", "principals.nconst", "=", "names.nconst");
+      return result;
+    };
 
-        const result = movieCrew.reduce(
-          (crewObject, person) => {
-            const { category, primaryName } = person;
+    const movieCrewQuery = async (imdbID, req) => {
+      const movieCrew = await req.db
+        .from("principals")
+        .where("tconst", imdbID)
+        .whereIn("category", ["writer", "director", "actor", "actress"])
+        .innerJoin("names", "principals.nconst", "=", "names.nconst");
 
-            if (category === "director") {
-              crewObject.Director = crewObject.Director
-                ? `${crewObject.Director}, ${primaryName}`
-                : primaryName;
-            } else if (category === "writer") {
-              crewObject.Writer = crewObject.Writer
-                ? `${crewObject.Writer}, ${primaryName}`
-                : primaryName;
-            } else if (category === "actor" || category === "actress") {
-              crewObject.Actors = crewObject.Actors
-                ? `${crewObject.Actors}, ${primaryName}`
-                : primaryName;
-            }
+      const result = movieCrew.reduce(
+        (crewObject, person) => {
+          const { category, primaryName } = person;
 
-            return crewObject;
+          if (category === "director") {
+            crewObject.Director = crewObject.Director
+              ? `${crewObject.Director}, ${primaryName}`
+              : primaryName;
+          } else if (category === "writer") {
+            crewObject.Writer = crewObject.Writer
+              ? `${crewObject.Writer}, ${primaryName}`
+              : primaryName;
+          } else if (category === "actor" || category === "actress") {
+            crewObject.Actors = crewObject.Actors
+              ? `${crewObject.Actors}, ${primaryName}`
+              : primaryName;
+          }
+
+          return crewObject;
+        },
+        { Director: null, Writer: null, Actors: null }
+      );
+
+      return result;
+    };
+
+    const movieRatingQuery = async (imdbID, req) => {
+      const movieRating = await req.db
+        .from("ratings")
+        .select("*")
+        .where("tconst", imdbID);
+
+      const rating = movieRating[0].averageRating;
+
+      return {
+        Ratings: [
+          {
+            Source: "Internet Movie Database",
+            Value: `${rating}/10`,
           },
-          { Director: null, Writer: null, Actors: null }
-        );
-
-        return result;
+        ],
       };
+    };
 
-      const movieRatingQuery = async (imdbID, req) => {
-        const movieRating = await req.db
-          .from("ratings")
-          .select("*")
-          .where("tconst", imdbID);
+    const movieInfoResult = await movieInfoQuery(imdbID, req);
+    const movieCrewResult = await movieCrewQuery(imdbID, req);
+    const movieRatingResult = await movieRatingQuery(imdbID, req);
 
-        const rating = movieRating[0].averageRating;
+    const data = [
+      { ...movieInfoResult, ...movieCrewResult, ...movieRatingResult },
+    ];
 
-        return {
-          Ratings: [
-            {
-              Source: "Internet Movie Database",
-              Value: `${rating}/10`,
-            },
-          ],
-        };
-      };
-
-      const movieInfoResult = await movieInfoQuery(imdbID, req);
-      const movieCrewResult = await movieCrewQuery(imdbID, req);
-      const movieRatingResult = await movieRatingQuery(imdbID, req);
-
-      const data = [
-        { ...movieInfoResult, ...movieCrewResult, ...movieRatingResult },
-      ];
-
-      res.json(data);
-    } catch (error) {
-      console.error(error);
-    }
+    res.json(data);
+  } catch (error) {
+    console.error(error);
   }
-);
+});
 
 module.exports = router;
