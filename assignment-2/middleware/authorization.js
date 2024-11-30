@@ -1,14 +1,13 @@
 const jwt = require("jsonwebtoken");
+const throwError = require("../functions/utils/throwError");
+const handleError = require("../functions/utils/handleError");
 
 module.exports = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   try {
     if (!authHeader || !authHeader.match(/^Bearer /)) {
-      throw {
-        statusCode: 401,
-        message: "Authorization header ('Bearer token') not found",
-      };
+      throwError(401, "Authorization header ('Bearer token') not found");
     }
 
     const token = authHeader.split(" ")[1];
@@ -31,7 +30,6 @@ module.exports = async (req, res, next) => {
     }
     next();
   } catch (error) {
-    const statusCode = error.statusCode ? error.statusCode : 400;
-    res.status(statusCode).json({ error: true, message: error.message });
+    handleError(res, error);
   }
 };

@@ -1,18 +1,14 @@
+require("dotenv").config();
 const createError = require("http-errors");
 const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
-
-require("dotenv").config();
-const helmet = require("helmet");
-
-const indexRouter = require("./routes/index");
-const userRouter = require("./routes/user");
-
 const options = require("./knexfile");
 const knex = require("knex")(options);
 const cors = require("cors");
+const helmet = require("helmet");
+const validateQuery = require("./middleware/validateQuery");
 
 const app = express();
 
@@ -27,14 +23,15 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 app.use(cors());
 app.use(helmet());
+app.use(validateQuery());
 
 app.use(function (req, res, next) {
   req.db = knex;
   next();
 });
 
-app.use("/", indexRouter);
-app.use("/user", userRouter);
+app.use("/", require("./routes/index"));
+app.use("/user", require("./routes/user"));
 app.use("/movies", require("./routes/movies"));
 app.use("/posters", require("./routes/posters"));
 

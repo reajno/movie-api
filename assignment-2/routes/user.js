@@ -1,18 +1,10 @@
 const express = require("express");
 const router = express.Router();
-
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const userQuery = require("../functions/query/userQuery");
 const throwError = require("../functions/utils/throwError");
-const userQuery = require("../functions/query/userQuery.js")
-
-
-
-
-/* GET users listing. */
-router.get("/", function (req, res, next) {
-  res.send("respond with a resource");
-});
+const handleError = require("../functions/utils/handleError");
 
 router.post("/register", async (req, res, next) => {
   const { email, password } = req.body;
@@ -25,7 +17,6 @@ router.post("/register", async (req, res, next) => {
       );
     }
 
-
     const userResult = await userQuery(req, email);
 
     // If user exists
@@ -33,19 +24,24 @@ router.post("/register", async (req, res, next) => {
       throwError(409, "User already exists");
     }
 
+    // Define salt rounds
     const saltRounds = 10;
+
+    // Generate hash
     const hash = await bcrypt.hash(password, saltRounds);
+
+    // Post user email and hashed password
     await req.db.from("users").insert({ email, hash });
 
     res.status(201).json({ message: "User created" });
   } catch (error) {
-    const statusCode = error.statusCode ? error.statusCode : 400;
-    res.status(statusCode).json({ error: true, message: error.message });
+    handleError(res, error);
   }
 });
 
 router.post("/login", async (req, res, next) => {
   const { email, password } = req.body;
+
   try {
     if (!email || !password) {
       throwError(
@@ -58,7 +54,7 @@ router.post("/login", async (req, res, next) => {
     const userResult = await userQuery(req, email);
 
     if (userResult.length === 0) {
-      throwError(400, "Unknown email, please register your account");
+      throwError(401, "Unknown email, please register your account");
     }
 
     // Define valid user
@@ -85,8 +81,7 @@ router.post("/login", async (req, res, next) => {
       expires_in,
     });
   } catch (error) {
-    const statusCode = error.statusCode || 400;
-    res.status(statusCode).json({ error: true, message: error.message });
+    handleError(res, error);
   }
 });
 

@@ -5,60 +5,59 @@ const authorization = require("../middleware/authorization");
 const validateQuery = require("../middleware/validateQuery");
 const imageQuery = require("../functions/query/imageQuery");
 const imagePostQuery = require("../functions/query/imagePostQuery");
+const throwError = require("../functions/utils/throwError");
+const handleError = require("../functions/utils/handleError");
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-router.get(
-  "/:imdbID",
-  validateQuery(),
-  authorization,
-  async (req, res, next) => {
-    try {
-      const { imdbID } = req.params;
-      const { email } = req.user;
+router.get("/:imdbID", authorization, async (req, res, next) => {
+  const { imdbID } = req.params;
+  const { email } = req.user;
 
-      const posterResult = await imageQuery(req, email, imdbID);
+  try {
+    const posterResult = await imageQuery(req, email, imdbID);
 
-      res.set({
-        "Content-Type": "image/png",
-
-        // Trigger "Save As" dialog in browser
-        "Content-Disposition": `attachment; filename="${imdbID}.png"`,
-      });
-      // Show image
-      res.send(posterResult);
-    } catch (error) {
-      const statusCode = error.statusCode ? error.statusCode : 400;
-      res.status(statusCode).json({ error: true, message: error.message });
+    if (posterResult.length === 0) {
+      throwError(500, "Requested image is not found");
     }
+
+    const poster = posterResult[0].image;
+
+    res.set({
+      "Content-Type": "image/png",
+
+      // Trigger "Save As" dialog in browser
+      "Content-Disposition": `attachment; filename="${imdbID}.png"`,
+    });
+
+    // Show image
+    res.send(poster);
+  } catch (error) {
+    handleError(res, error);
   }
-);
+});
 
 router.post(
   "/add/:imdbID",
-  validateQuery(),
   authorization,
   upload.single("image"),
   async (req, res, next) => {
+    const { imdbID } = req.params;
+    const { email } = req.user;
+
     try {
-      const { imdbID } = req.params;
-      const { email } = req.user;
+      if (!req.file) {
+        throwError(400, "File is missing from the request");
+      }
+
+      // Get image buffer and file type from request
       const { buffer, mimetype } = req.file;
 
-      if (!imdbID) {
-        throw {
-          message: "You must supply an imdbID!",
-        };
-      }
-
       if (mimetype !== "image/png") {
-        throw {
-          message: "Image must be a PNG file",
-        };
+        throwError(400, "Image must be a PNG file");
       }
 
-      
-
+      // Post image to DB
       await imagePostQuery(req, email, imdbID, buffer);
 
       res.status(201).json({
@@ -66,8 +65,7 @@ router.post(
         message: "Poster Uploaded Successfully",
       });
     } catch (error) {
-      const statusCode = error.statusCode ? error.statusCode : 400;
-      res.status(statusCode).json({ error: true, message: error.message });
+      handleError(res, error);
     }
   }
 );
