@@ -17,15 +17,9 @@ module.exports = async (req, res, next) => {
       req.user = decoded;
     } catch (error) {
       if (error.name === "TokenExpiredError") {
-        throw {
-          statusCode: 401,
-          message: "JWT token has expired",
-        };
+        throwError(401, "JWT token has expired");
       } else {
-        throw {
-          statusCode: 401,
-          message: "Invalid JWT Token",
-        };
+        throwError(401, "Invalid JWT Token");
       }
     }
     next();
