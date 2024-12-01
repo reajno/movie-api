@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
+const path = require("path");
+const fs = require("fs").promises;
 const authorization = require("../middleware/authorization");
-const validateQuery = require("../middleware/validateQuery");
 const imageQuery = require("../functions/query/imageQuery");
 const imagePostQuery = require("../functions/query/imagePostQuery");
 const throwError = require("../functions/utils/throwError");
@@ -23,6 +24,12 @@ router.get("/:imdbID", authorization, async (req, res, next) => {
 
     const poster = posterResult[0].image;
 
+    // // define path for file upload
+    const savePath = path.join(process.cwd(), "uploads", `${imdbID}.png`);
+
+    // // save file to path
+    await fs.writeFile(savePath, poster);
+
     res.set({
       "Content-Type": "image/png",
 
@@ -31,7 +38,7 @@ router.get("/:imdbID", authorization, async (req, res, next) => {
     });
 
     // Show image
-    res.send(poster);
+    res.sendFile(savePath);
   } catch (error) {
     handleError(res, error);
   }
