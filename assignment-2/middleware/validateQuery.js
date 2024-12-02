@@ -6,10 +6,8 @@ module.exports = (allowedQuery = []) => {
     try {
       // Get all queries from URL
       const query = Object.keys(req.query);
-
       // Define invalid queries
       const invalidQuery = query.filter((key) => !allowedQuery.includes(key));
-
       if (invalidQuery.length > 0) {
         throwError(
           400,
