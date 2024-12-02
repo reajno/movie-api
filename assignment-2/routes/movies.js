@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const validateQuery = require("../middleware/validateQuery");
 const paginationQuery = require("../functions/query/paginationQuery");
 const movieSearchQuery = require("../functions/query/movieSearchQuery");
 const movieInfoQuery = require("../functions/query/movieInfoQuery");
@@ -8,6 +7,8 @@ const movieCrewQuery = require("../functions/query/movieCrewQuery");
 const movieRatingQuery = require("../functions/query/movieRatingQuery");
 const throwError = require("../functions/utils/throwError");
 const handleError = require("../functions/utils/handleError");
+const validateQuery = require("../middleware/validateQuery");
+const validateIDParam = require("../middleware/validateIDParam");
 
 router.get(
   "/search",
@@ -55,32 +56,37 @@ router.get(
   }
 );
 
-router.get("/data/:imdbID", async (req, res, next) => {
-  const { imdbID } = req.params;
+router.get(
+  "/data/:imdbID",
+  validateIDParam,
+  validateQuery(),
+  async (req, res, next) => {
+    const { imdbID } = req.params;
 
-  try {
-    // Check if imdbID exists in DB
-    const movie = await req.db
-      .from("basics")
-      .select("*")
-      .where("tconst", imdbID);
+    try {
+      // Check if imdbID exists in DB
+      const movie = await req.db
+        .from("basics")
+        .select("*")
+        .where("tconst", imdbID);
 
-    if (movie.length === 0) {
-      throwError(400, "imdbID not found in the database");
+      if (movie.length === 0) {
+        throwError(400, "imdbID not found in the database");
+      }
+
+      const movieInfoResult = await movieInfoQuery(req, imdbID);
+      const movieCrewResult = await movieCrewQuery(req, imdbID);
+      const movieRatingResult = await movieRatingQuery(req, imdbID);
+
+      const combinedResult = [
+        { ...movieInfoResult, ...movieCrewResult, ...movieRatingResult },
+      ];
+
+      res.json(combinedResult);
+    } catch (error) {
+      handleError(res, error);
     }
-
-    const movieInfoResult = await movieInfoQuery(req, imdbID);
-    const movieCrewResult = await movieCrewQuery(req, imdbID);
-    const movieRatingResult = await movieRatingQuery(req, imdbID);
-
-    const combinedResult = [
-      { ...movieInfoResult, ...movieCrewResult, ...movieRatingResult },
-    ];
-
-    res.json(combinedResult);
-  } catch (error) {
-    handleError(res, error);
   }
-});
+);
 
 module.exports = router;

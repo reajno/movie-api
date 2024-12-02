@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "client": "http-server --index index.html"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
@@ -11,9 +12,10 @@
     "cors": "^2.8.5",
     "debug": "~2.6.9",
     "dotenv": "^16.4.5",
-    "express": "~4.16.1",
+    "express": "^4.21.1",
     "helmet": "^8.0.0",
     "http-errors": "~1.6.3",
+    "http-server": "^14.1.1",
     "jade": "~1.11.0",
     "jsonwebtoken": "^9.0.2",
     "knex": "^3.1.0",

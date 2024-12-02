@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Login</title>
+  </head>
+  <body>
+    <h1>User Login</h1>
+    <form id="loginForm">
+      <div>
+        <label for="email">Email:</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="Enter your email"
+          required
+        />
+      </div>
+      <div>
+        <label for="password">Password:</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Enter your password"
+          required
+        />
+      </div>
+      <button type="submit" id="loginBtn">Login</button>
+    </form>
+
+    <h1>Upload Image</h1>
+    <form id="addPoster" enctype="multipart/form-data">
+      <div>
+        <label for="imdbID">IMDb ID:</label>
+        <input
+          type="text"
+          id="imdbID"
+          name="imdbID"
+          placeholder="Enter IMDb ID"
+        />
+      </div>
+
+      <!-- Step 2: Upload File -->
+      <div>
+        <label for="image">Upload PNG Image:</label>
+        <input type="file" id="image" name="image" accept="image/png" />
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit">Submit</button>
+    </form>
+
+    <script>
+      addPosterForm = document.getElementById("addPoster");
+      loginForm = document.getElementById("loginForm");
+
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = e.target[0].value;
+        const password = e.target[1].value;
+        try {
+          const res = await fetch("https://localhost:3000/user/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json", // Set Content-Type header to application/json
+            },
+            body: JSON.stringify({
+              email,
+              password,
+            }),
+          });
+
+          const data = await res.json();
+          const token = data.token;
+
+          sessionStorage.setItem("authToken", token);
+        } catch (error) {
+          console.log("error from login form");
+        }
+      });
+
+      addPosterForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const token = sessionStorage.getItem("authToken");
+        const imdbID = e.target[0].value;
+
+        const formData = new FormData(e.target);
+        try {
+          const res = await fetch(
+            `https://localhost:3000/posters/add/${imdbID}`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              body: formData,
+            }
+          );
+          const data = await res.json();
+          console.log(data);
+        } catch (error) {
+          console.log("error from add poster form");
+        }
+      });
+    </script>
+  </body>
+</html>

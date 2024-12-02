@@ -5,8 +5,9 @@ const bcrypt = require("bcrypt");
 const userQuery = require("../functions/query/userQuery");
 const throwError = require("../functions/utils/throwError");
 const handleError = require("../functions/utils/handleError");
+const validateQuery = require("../middleware/validateQuery");
 
-router.post("/register", async (req, res, next) => {
+router.post("/register", validateQuery(), async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
@@ -39,7 +40,7 @@ router.post("/register", async (req, res, next) => {
   }
 });
 
-router.post("/login", async (req, res, next) => {
+router.post("/login", validateQuery(), async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
