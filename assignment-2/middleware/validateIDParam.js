@@ -15,7 +15,6 @@ module.exports = async (req, res, next) => {
         throwError(400, "imdbID not found in the database");
       }
     }
-    console.log(req.params);
     next();
   } catch (error) {
     handleError(res, error);

@@ -11,7 +11,10 @@ const handleError = require("../functions/utils/handleError");
 const validateIDParam = require("../middleware/validateIDParam");
 const validateQuery = require("../middleware/validateQuery");
 
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5mb file limit
+});
 
 router.get(
   "/:imdbID",
