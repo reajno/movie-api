@@ -11,6 +11,7 @@ router.post("/register", validateQuery(), async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
+    // Check if "email" and "password" fields are populated
     if (!email || !password) {
       throwError(
         400,
@@ -20,7 +21,7 @@ router.post("/register", validateQuery(), async (req, res, next) => {
 
     const userResult = await userQuery(req, email);
 
-    // If user exists
+    // Check if user already exists in DB
     if (userResult.length > 0) {
       throwError(409, "User already exists");
     }
@@ -28,10 +29,10 @@ router.post("/register", validateQuery(), async (req, res, next) => {
     // Define salt rounds
     const saltRounds = 10;
 
-    // Generate hash
+    // Generate password hash
     const hash = await bcrypt.hash(password, saltRounds);
 
-    // Post user email and hashed password
+    // Insert user email and hashed password to DB
     await req.db.from("users").insert({ email, hash });
 
     res.status(201).json({ message: "User created" });
@@ -54,6 +55,7 @@ router.post("/login", validateQuery(), async (req, res, next) => {
     // Find user email from DB
     const userResult = await userQuery(req, email);
 
+    // Check if email exists
     if (userResult.length === 0) {
       throwError(401, "Unknown email, please register your account");
     }
@@ -64,6 +66,7 @@ router.post("/login", validateQuery(), async (req, res, next) => {
     // Match password input with user hash stored in DB
     const passwordMatch = await bcrypt.compare(password, user.hash);
 
+    // Check if password matches
     if (!passwordMatch) {
       throwError(401, "Incorrect password");
     }

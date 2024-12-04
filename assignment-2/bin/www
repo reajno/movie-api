@@ -20,8 +20,8 @@ app.set("port", port);
  */
 const fs = require("fs");
 const credentials = {
-  key: fs.readFileSync("./certs/selfsigned.key", "utf-8"),
-  cert: fs.readFileSync("./certs/selfsigned.crt", "utf-8"),
+  key: fs.readFileSync("./certs/server/selfsigned.key", "utf-8"),
+  cert: fs.readFileSync("./certs/server/selfsigned.crt", "utf-8"),
 };
 
 const server = https.createServer(credentials, app);

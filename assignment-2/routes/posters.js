@@ -1,8 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs").promises;
 const authorization = require("../middleware/authorization");
 const imageQuery = require("../functions/query/imageQuery");
 const imagePostQuery = require("../functions/query/imagePostQuery");
@@ -13,7 +11,6 @@ const validateQuery = require("../middleware/validateQuery");
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5mb file limit
 });
 
 router.get(
@@ -23,32 +20,27 @@ router.get(
   validateQuery(),
   async (req, res, next) => {
     const { imdbID } = req.params;
+    // Extract authenticated user's email
+    // (populated by "authorization" middleware)
     const { email } = req.user;
 
     try {
+      // Return image
       const posterResult = await imageQuery(req, email, imdbID);
 
+      // Check if image is found
       if (posterResult.length === 0) {
         throwError(500, "Requested image is not found");
       }
 
       const poster = posterResult[0].image;
-
-      // // define path for file upload
-      const savePath = path.join(process.cwd(), "uploads", `${imdbID}.png`);
-
-      // // save file to path
-      await fs.writeFile(savePath, poster);
-
       res.set({
         "Content-Type": "image/png",
-
         // Trigger "Save As" dialog in browser
         "Content-Disposition": `attachment; filename="${imdbID}.png"`,
       });
-
       // Show image
-      res.sendFile(savePath);
+      res.send(poster);
     } catch (error) {
       handleError(res, error);
     }
@@ -63,9 +55,12 @@ router.post(
   upload.single("image"),
   async (req, res, next) => {
     const { imdbID } = req.params;
+    // Extract authenticated user's email
+    // (populated by "authorization" middleware)
     const { email } = req.user;
 
     try {
+      // Check if file is added to request body
       if (!req.file) {
         throwError(400, "File is missing from the request");
       }
@@ -73,6 +68,7 @@ router.post(
       // Get image buffer and file type from request
       const { buffer, mimetype } = req.file;
 
+      // Check if file type is PNG
       if (mimetype !== "image/png") {
         throwError(400, "Image must be a PNG file");
       }

@@ -15,8 +15,11 @@ router.get(
   validateQuery(["title", "year", "page"]),
   async (req, res, next) => {
     const { title, year, page } = req.query;
+    // Limit of results to show per page
     const perPage = 100;
+    // Define current page
     const currentPage = page && page > 1 ? page : 1;
+    // Amount of results to skip
     const offset = (currentPage - 1) * perPage;
 
     try {
@@ -30,6 +33,7 @@ router.get(
         throwError(400, "Invalid year format. Format must be YYYY");
       }
 
+      // Return an object of results (movies) from the database
       const moviesResult = await movieSearchQuery(
         req,
         title,
@@ -38,6 +42,7 @@ router.get(
         perPage,
         offset
       );
+      // Return an object with pagination data based on total results found
       const paginationResult = await paginationQuery(
         req,
         title,
@@ -46,6 +51,7 @@ router.get(
         perPage
       );
 
+      // Combine retrieved objects and send as a response
       res.json({
         data: moviesResult,
         pagination: paginationResult,
@@ -64,16 +70,6 @@ router.get(
     const { imdbID } = req.params;
 
     try {
-      // Check if imdbID exists in DB
-      const movie = await req.db
-        .from("basics")
-        .select("*")
-        .where("tconst", imdbID);
-
-      if (movie.length === 0) {
-        throwError(400, "imdbID not found in the database");
-      }
-
       const movieInfoResult = await movieInfoQuery(req, imdbID);
       const movieCrewResult = await movieCrewQuery(req, imdbID);
       const movieRatingResult = await movieRatingQuery(req, imdbID);

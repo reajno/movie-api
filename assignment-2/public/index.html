@@ -31,7 +31,7 @@
       <button type="submit" id="loginBtn">Login</button>
     </form>
 
-    <h1>Upload Image</h1>
+    <h1>Poster Upload</h1>
     <form id="addPoster" enctype="multipart/form-data">
       <div>
         <label for="imdbID">IMDb ID:</label>
@@ -52,10 +52,26 @@
       <!-- Submit Button -->
       <button type="submit">Submit</button>
     </form>
+    <h1>Poster Retrieve</h1>
+    <form id="getPoster">
+      <div>
+        <label for="imdbID">IMDb ID:</label>
+        <input
+          type="text"
+          id="imdbID"
+          name="imdbID"
+          placeholder="Enter IMDb ID"
+        />
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit">Submit</button>
+    </form>
 
     <script>
       addPosterForm = document.getElementById("addPoster");
       loginForm = document.getElementById("loginForm");
+      getPosterForm = document.getElementById("getPoster");
 
       loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -85,11 +101,11 @@
 
       addPosterForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const token = sessionStorage.getItem("authToken");
-        const imdbID = e.target[0].value;
-
-        const formData = new FormData(e.target);
         try {
+          const token = sessionStorage.getItem("authToken");
+          const imdbID = e.target[0].value;
+
+          const formData = new FormData(e.target);
           const res = await fetch(
             `https://localhost:3000/posters/add/${imdbID}`,
             {
@@ -103,7 +119,38 @@
           const data = await res.json();
           console.log(data);
         } catch (error) {
-          console.log("error from add poster form");
+          console.log(error);
+        }
+      });
+
+      getPosterForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        try {
+          const token = sessionStorage.getItem("authToken");
+          const imdbID = e.target[0].value;
+          const res = await fetch(`https://localhost:3000/posters/${imdbID}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          // Check if response is an error
+          if (!res.ok) {
+            const data = await res.json();
+            throw data;
+          }
+
+          // Convert image buffer to blob
+          const imageBlob = await res.blob();
+          // Create a download link dynamically
+          const downloadLink = document.createElement("a");
+          downloadLink.href = URL.createObjectURL(imageBlob);
+          // Set the filename for the download
+          downloadLink.download = `${imdbID}.png`;
+          // Trigger the click event to download/open the "Save As" dialog
+          downloadLink.click();
+        } catch (error) {
+          console.log(error);
         }
       });
     </script>

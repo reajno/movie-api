@@ -7,6 +7,7 @@ module.exports = async (req, imdbID) => {
 
   const result = crewData.reduce(
     (crew, person) => {
+      // Extract crew title and name
       const { category, primaryName } = person;
 
       if (category === "director") {
@@ -23,8 +24,10 @@ module.exports = async (req, imdbID) => {
           : primaryName;
       }
 
+      // Return accumulated result
       return crew;
     },
+    // Initial value of "crew"
     { Director: null, Writer: null, Actors: null }
   );
 

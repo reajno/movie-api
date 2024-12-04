@@ -3,12 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
-    "client": "http-server --index index.html"
+    "server": "node ./bin/www",
+    "client": "http-server -S --index index.html -C certs/client/selfsigned.crt -K certs/client/selfsigned.key"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
-    "cookie-parser": "~1.4.4",
     "cors": "^2.8.5",
     "debug": "~2.6.9",
     "dotenv": "^16.4.5",
@@ -19,7 +18,6 @@
     "jade": "~1.11.0",
     "jsonwebtoken": "^9.0.2",
     "knex": "^3.1.0",
-    "morgan": "~1.9.1",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.11.4"
   }
